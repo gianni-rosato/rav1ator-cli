@@ -53,7 +53,7 @@ fi
 
 # update_hash_check
 update_hash_check () {
-	str=$(curl https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli.md5)
+	str=$(curl -s https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli.md5)
 	echo "$str"
 }
 
@@ -240,17 +240,10 @@ while [[ $done -eq 0 ]] ; do
 	
 	isGumInstalled=$(which gum 2>&1 | awk '{print $2}' 2>&1)
 	
-	echo "$isGumInstalled"
-	
-	case $isGumInstalled in
-		"no")
-			echo -e "${GREY}Please install${RESET} gum ${GREY}from your package manager to get started.${RESET}"
-			exit 1
-			;;
-		*)
-			done=0
-			;;
-	esac
+	if [ "$isGumInstalled" == "no" ]; then
+		echo -e "${GREY}Please install${RESET} gum ${GREY}from your package manager to get started.${RESET}"
+		exit 1
+	fi
 	
 	if [ "$bin_loc" != "/usr/local/bin/rav1ator-cli" ]; then
 		echo -e "${GREY}Please install${RESET} rav1ator-cli ${GREY}to your /usr/local/bin to started.${RESET}"
@@ -260,9 +253,9 @@ while [[ $done -eq 0 ]] ; do
 	
 	updateCheck=$(update_hash_check)
 	if [ "$script_md5" != "$updateCheck" ]; then
-		curl -OJ https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli
+		curl -sOJ https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli
 		echo -e "There is a ${BOLD}New Update${RESET} available!"
-		echo -e "We've downloaded it for you. You can install it by running the following command in your current directory:"
+		echo -e "${GREY}We've downloaded it for you. You can install it by running the following command in your current directory:${RESET}"
 		echo -e "sudo cp rav1ator-cli /usr/local/bin"
 		exit 1
 	fi
