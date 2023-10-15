@@ -11,7 +11,7 @@ rAV1ator CLI Edition can:
 
 - Check if it is installed & up to date on its own without a package manager
 
-- Download AVX2-optimized encoder binaries compiled with `-O3 -flto`` in most cases & allow the user to install them with detailed instructions
+- Download AVX2-optimized encoder binaries compiled with `-O3 -flto` in most cases & allow the user to install them with detailed instructions
 
 - Encode with x264, x265, aomenc, SVT-AV1, or rav1e, set a speed preset, CRF/quality value, FFmpeg parameters, and encoder parameters
 
