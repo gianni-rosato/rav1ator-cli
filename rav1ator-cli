@@ -26,9 +26,9 @@ svt_link="https://autumn.revolt.chat/attachments/download/jSawgAFXx62YCk06m0zEuc
 aom_link="https://autumn.revolt.chat/attachments/download/OA-woXb8eUPhmB0z4NGZkxn88G_Q5zDpEqusn7DzH1"
 
 
-# Every time there's an update, this will change & is checked against rav1ator-cli.md5 in the git repo. to generate rav1ator-cli.md5, just `md5sum rav1ator-cli | awk '{print $1}' >> rav1ator-cli.md5`.
+# Every time there's an update, this will change & is checked against rav1ator-cli.md5 in the git repo. to generate rav1ator-cli.md5, just `rm rav1ator-cli.md5 && md5sum rav1ator-cli | awk '{print $1}' >> rav1ator-cli.md5`.
 script_md5=$(md5sum /usr/local/bin/rav1ator-cli | awk '{print $1}')
-version="0.0.1"
+version="0.0.2"
 
 bin_loc=$(which rav1ator-cli)
 
@@ -155,12 +155,16 @@ crf_used_select () {
 }
 
 param_text () {
-	str="Would you like to input custom encoder parameters? Default parameters are tested to excel perceptually in SDR at 1080p for live action. \nIf you're encoding HDR video, the defaults will not work for you. \nCustom parameters ${BOLD}will overwrite your speed & quality selections, so you'll need to manually specify them here.${RESET}"
+	str="Would you like to input custom encoder parameters? Default parameters are tested to excel perceptually in SDR at 1080p for live action. \nIf you're encoding HDR video, "Default" will not work for you. \nCustom parameters ${BOLD}will overwrite your speed & quality selections, so you'll need to manually specify them here.${RESET}"
 	echo "$str"
 }
 
 param_select () {
-	yn=$(gum choose --limit=1 --cursor.foreground="161" --item.foreground="248" Default Custom)
+	if [[ "$encoder" != "x264" && "$encoder" != "x265" && "$encoder" != "SVT-AV1" ]]; then
+		yn=$(gum choose --limit=1 --cursor.foreground="161" --item.foreground="248" Default Custom HDR10)
+	else
+		yn=$(gum choose --limit=1 --cursor.foreground="161" --item.foreground="248" Default Custom)
+	fi
 	case $yn in
 		"Custom")
 			str="$(gum input --cursor.foreground="161" --prompt.foreground="248" --width 72 --placeholder "Custom Encoder Parameters")"
@@ -174,21 +178,46 @@ param_select () {
 					str="--output-depth 10 --profile main10 --me star --subme 5 --limit-modes --rect --amp --max-merge 5 --no-early-skip --bframes 16 --ref 6 --rc-lookahead 60 --limit-refs 0 --rd 6 --rdoq-level 2 --psy-rdoq 1.00 --no-sao -F 2 -p "$speed" --crf "$crf""
 					;;
 				"aomenc")
-					str="--good --bit-depth=10 --end-usage=q --threads=2 --tune=omni --ssim-rd-mult=150 --tune-content=psy --arnr-maxframes=15 --arnr-strength=6 --tpl-strength=8 --enable-cdef=2 --loopfilter-control=3 --quant-sharpness=5 --deltaq-mode=1 --aq-mode=0 --enable-keyframe-filtering=1 --enable-qm=1 --lag-in-frames=48 --sb-size=dynamic --cpu-used=$speed --cq-level=$crf"
-					#--denoise-noise-level=2 --enable-dnl-denoising=0
+					str="--good --bit-depth=10 --end-usage=q --threads=2 --tune=omni --ssim-rd-mult=150 --tune-content=psy --arnr-maxframes=15 --arnr-strength=6 --tpl-strength=8 --enable-cdef=2 --loopfilter-control=3 --quant-sharpness=5 --deltaq-mode=1 --aq-mode=0 --enable-keyframe-filtering=1 --enable-qm=1 --lag-in-frames=48 --sb-size=dynamic --cpu-used=$speed --cq-level=$crf --denoise-noise-level=$grain --enable-dnl-denoising=0"
 					;;
 				"SVT-AV1")
-					str="--input-depth 10 --tune 2 --enable-overlays 1 --enable-qm 1 --keyint -1 --scd 1 --lp 1 --irefresh-type 1 --crf "$crf" --preset "$speed""
-					#
+					str="--input-depth 10 --tune 2 --enable-overlays 1 --enable-qm 1 --keyint -1 --scd 1 --lp 1 --irefresh-type 1 --crf "$crf" --preset "$speed" --film-grain "$grain" --film-grain-denoise 0"
 					;;
 				"rav1e")
-					str="--tiles 8 --threads 2 --no-scene-detection -s "$speed" --quantizer "$crf""
-					#
+					str="--tiles 8 --threads 2 --no-scene-detection -s "$speed" --quantizer "$crf" --photon-noise "$grain""
+					;;
+			esac
+			;;
+		"HDR10")
+			case $encoder in
+				"aomenc")
+					str="--good --bit-depth=10 --end-usage=q --threads=2 --tune=omni --ssim-rd-mult=150 --tune-content=psy --arnr-maxframes=15 --arnr-strength=6 --tpl-strength=8 --enable-cdef=2 --loopfilter-control=3 --quant-sharpness=5 --deltaq-mode=1 --aq-mode=0 --enable-keyframe-filtering=1 --enable-qm=1 --lag-in-frames=48 --sb-size=dynamic --cpu-used=$speed --cq-level=$crf --denoise-noise-level=$grain --enable-dnl-denoising=0 --color-primaries=bt2020 --transfer-characteristics=smpte2084 --matrix-coefficients=bt2020ncl"
+					;;
+				"SVT-AV1")
+					str="--input-depth 10 --tune 2 --enable-overlays 1 --enable-qm 1 --keyint -1 --scd 1 --lp 1 --irefresh-type 1 --crf "$crf" --preset "$speed" --film-grain "$grain" --film-grain-denoise 0"
+					;;
+				"rav1e")
+					str="--tiles 8 --threads 2 --no-scene-detection -s "$speed" --quantizer "$crf" --photon-noise "$grain" --primaries BT2020 --transfer SMPTE2084 --matrix BT2020NCL"
 					;;
 			esac
 			;;
 	esac
 	echo "$str"
+}
+
+grain_text () {
+	str="Would you like to add synthetic film grain to your video? \nThis is recommended for AV1 video, at a value of 1 or 2 to start."
+	echo "$str"
+}
+
+grain_confirmation () {
+	yn="$(gum choose --limit=1 --cursor.foreground="161" --item.foreground="248" Yes No)"
+	echo "$yn"
+}
+
+grain_select () {
+	gamnt=$(gum input --cursor.foreground="161" --prompt.foreground="248" --width 4 --placeholder "Film Grain Amount ($grain_scale)")
+	echo "$gamnt"
 }
 
 ffmpeg_text () {
@@ -197,13 +226,16 @@ ffmpeg_text () {
 }
 
 ffmpeg_select () {
-	yn=$(gum choose --limit=1 --cursor.foreground="161" --item.foreground="248" 1080p 720p 1080p-BluRay 1080p-Univisium Custom)
+	yn=$(gum choose --limit=1 --cursor.foreground="161" --item.foreground="248" None 1080p 720p 1080p-BluRay 1080p-Univisium Custom)
 	case $yn in
 		"Custom")
 			str="$(gum input --cursor.foreground="161" --prompt.foreground="248" --width 72 --placeholder "Custom FFmpeg Options")"
 			;;
 		"1080p")
 			str="-vf scale=1920:1080:flags=bicubic:param0=0:param1=1/2 -an"
+			;;
+		"None")
+			str="-an"
 			;;
 		"720p")
 			str="-vf scale=1280:720:flags=bicubic:param0=0:param1=1/2 -an"
@@ -332,12 +364,15 @@ while [[ $done -eq 0 ]] ; do
 			encoder_av1an="x265"
 			;;
 		"aomenc")
+			grain_scale="1-50"
 			encoder_av1an="aom"
 			;;
 		"SVT-AV1")
+			grain_scale="1-50"
 			encoder_av1an="svt-av1"
 			;;
 		"rav1e")
+			grain_scale="1-64"
 			encoder_av1an="rav1e"
 			;;
 	esac
@@ -352,7 +387,20 @@ while [[ $done -eq 0 ]] ; do
     	echo -e "$crf_string"
     	crf=$(crf_used_select)
     	echo -e "${GREY}>${RESET} ${AV1RED}$crf${RESET}\n"
-    	
+
+		if [[ "$encoder" != "x264" && "$encoder" != "x265" ]]; then
+			grain_string=$(grain_text)
+			echo -e "$grain_string"
+			grain_confirm=$(grain_confirmation)
+			if [ "$grain_confirm" == "Yes" ]; then
+				grain=$(grain_select)
+				echo -e "${GREY}>${RESET} ${AV1RED}$grain${RESET}\n"
+			else
+				grain=0
+				echo -e "${GREY}No synthetic grain will be added.${RESET}\n"
+			fi
+    	fi
+
     	paramtext=$(param_text)
     	echo -e "$paramtext"
     	params="$(param_select)"
