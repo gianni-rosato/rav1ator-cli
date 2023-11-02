@@ -28,7 +28,7 @@ aom_link="https://autumn.revolt.chat/attachments/download/OA-woXb8eUPhmB0z4NGZkx
 
 # Every time there's an update, this will change & is checked against rav1ator-cli.md5 in the git repo. to generate rav1ator-cli.md5, just `rm rav1ator-cli.md5 && md5sum rav1ator-cli | awk '{print $1}' >> rav1ator-cli.md5`.
 script_md5=$(md5sum /usr/local/bin/rav1ator-cli | awk '{print $1}')
-version="0.0.3"
+version="0.0.3a"
 
 bin_loc=$(which rav1ator-cli)
 
