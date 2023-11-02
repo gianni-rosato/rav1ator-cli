@@ -1,0 +1,1 @@
+av1an -i "t.mkv" --verbose --resume --temp "rAV1ator-CLI_temp" --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height 1080 -e rav1e --force -v "--tiles 8 --threads 2 --no-scene-detection -s p --quantizer y --photon-noise 0" --pix-format yuv420p10le -f "-vf scale=1280:720:flags=bicubic:param0=0:param1=1/2 -an" --set-thread-affinity 2 -w i -o "t.mkv"
