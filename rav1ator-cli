@@ -187,7 +187,7 @@ param_select () {
 					str="--output-depth 10 --profile main10 --me star --subme 5 --limit-modes --rect --amp --max-merge 5 --no-early-skip --bframes 16 --ref 6 --rc-lookahead 60 --limit-refs 0 --rd 6 --rdoq-level 2 --psy-rdoq 1.00 --no-sao -F 2 -p "$speed" --crf "$crf""
 					;;
 				"aomenc")
-					str="--good --bit-depth=10 --end-usage=q --threads=2 --tune=ssim --ssim-rd-mult=125 --tune-content=psy --arnr-maxframes=15 --arnr-strength=2 --enable-cdef=0 --loopfilter-control=3 --quant-sharpness=3 --deltaq-mode=1 --aq-mode=0 --enable-keyframe-filtering=1 --luma-bias=25 --luma-bias-strength=15 --luma-bias-midpoint=66 --enable-qm=1 --lag-in-frames=48 --sb-size=dynamic --disable-kf --kf-max-dist=9999 --cpu-used=$speed --cq-level=$crf --denoise-noise-level=$grain --enable-dnl-denoising=0"
+					str="--good --bit-depth=10 --end-usage=q --threads=2 --tune=ssim --ssim-rd-mult=125 --tune-content=psy --arnr-maxframes=15 --arnr-strength=2 --enable-cdef=0 --loopfilter-control=3 --quant-sharpness=3 --deltaq-mode=1 --aq-mode=0 --enable-keyframe-filtering=1 --luma-bias=25 --luma-bias-strength=15 --luma-bias-midpoint=66 --enable-qm=1 --quant-b-adapt=1 --lag-in-frames=48 --sb-size=dynamic --disable-kf --kf-max-dist=9999 --cpu-used=$speed --cq-level=$crf --denoise-noise-level=$grain --enable-dnl-denoising=0"
 					;;
 				"SVT-AV1")
 					str="--input-depth 10 --tune 2 --enable-overlays 1 --enable-qm 1 --qm-min 0 --qm-max 15 --keyint -1 --scd 0 --lp 1 --irefresh-type 1 --crf "$crf" --preset "$speed" --film-grain "$grain" --film-grain-denoise 0"
@@ -200,7 +200,7 @@ param_select () {
 		"HDR10")
 			case $encoder in
 				"aomenc")
-					str="--good --bit-depth=10 --end-usage=q --threads=2 --tune=ssim --ssim-rd-mult=125 --tune-content=psy --arnr-maxframes=15 --arnr-strength=2 --enable-cdef=0 --loopfilter-control=3 --quant-sharpness=3 --deltaq-mode=5 --aq-mode=0 --enable-keyframe-filtering=1 --luma-bias=36 --luma-bias-strength=16 --luma-bias-midpoint=60 --enable-qm=1 --lag-in-frames=48 --sb-size=dynamic --disable-kf --kf-max-dist=9999 --cpu-used=$speed --cq-level=$crf --denoise-noise-level=$grain --enable-dnl-denoising=0 --color-primaries=bt2020 --transfer-characteristics=smpte2084 --matrix-coefficients=bt2020ncl"
+					str="--good --bit-depth=10 --end-usage=q --threads=2 --tune=ssim --ssim-rd-mult=125 --tune-content=psy --arnr-maxframes=15 --arnr-strength=2 --enable-cdef=0 --loopfilter-control=3 --quant-sharpness=3 --deltaq-mode=5 --aq-mode=0 --enable-keyframe-filtering=1 --luma-bias=36 --luma-bias-strength=16 --luma-bias-midpoint=60 --enable-qm=1 --quant-b-adapt=1 --lag-in-frames=48 --sb-size=dynamic --disable-kf --kf-max-dist=9999 --cpu-used=$speed --cq-level=$crf --denoise-noise-level=$grain --enable-dnl-denoising=0 --color-primaries=bt2020 --transfer-characteristics=smpte2084 --matrix-coefficients=bt2020ncl"
 					;;
 				# "SVT-AV1") COMING SOON!
 					# str="--input-depth 10 --tune 2 --enable-overlays 1 --enable-qm 1 --qm-min 0 --qm-max 15 --keyint -1 --scd 0 --lp 1 --irefresh-type 1 --crf "$crf" --preset "$speed" --film-grain "$grain" --film-grain-denoise 0"
@@ -213,7 +213,7 @@ param_select () {
 		"Animation")
 			case $encoder in
 				"aomenc")
-					str="--good --bit-depth=10 --end-usage=q --threads=2 --tune=ssim --tune-content=psy --arnr-maxframes=15 --arnr-strength=2 --enable-cdef=0 --loopfilter-control=1 --quant-sharpness=0 --deltaq-mode=1 --enable-chroma-deltaq=1 --aq-mode=0 --enable-keyframe-filtering=1 --luma-bias=0 --enable-qm=1 --lag-in-frames=48 --sb-size=dynamic --disable-kf --kf-max-dist=9999 --dist-metric=qm-psnr --qm-min=0 --qm-max=8 --min-q=1 --cpu-used=$speed --cq-level=$crf --denoise-noise-level=$grain --enable-dnl-denoising=0"
+					str="--good --bit-depth=10 --end-usage=q --threads=2 --tune=ssim --tune-content=psy --arnr-maxframes=15 --arnr-strength=2 --enable-cdef=0 --loopfilter-control=1 --quant-sharpness=0 --deltaq-mode=1 --enable-chroma-deltaq=1 --aq-mode=0 --enable-keyframe-filtering=1 --luma-bias=0 --enable-qm=1 --lag-in-frames=48 --sb-size=dynamic --disable-kf --kf-max-dist=9999 --dist-metric=qm-psnr --quant-b-adapt=1 --qm-min=0 --qm-max=8 --min-q=1 --cpu-used=$speed --cq-level=$crf --denoise-noise-level=$grain --enable-dnl-denoising=0"
 					;;
 			esac
 			;;
