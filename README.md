@@ -1,10 +1,22 @@
 # rav1ator-cli
 An easy-to-use CLI utility for working with Av1an, writtin in Bash.
 
-```bash
+```zsh
 ~ > rav1ator-cli -h
-	rAV1ator: CLI Edition_
-	Usage: rav1ator-cli [input] [output]
+rAV1ator: CLI Edition_ v0.1.0
+
+Usage:
+	rav1ator-cli [input] [output] [--offline]
+
+Dependencies (Arch): 
+	rust ffmpeg python mkvtoolnix-cli vapoursynth gum numactl l-smash vapoursynth-plugin-lsmashsource av1an ffms2
+
+Options: (Currently, only one option is useful at a time)
+	-h, --help		Print this help section
+	-l, --last-used		Print last used encode settings from history
+	-f, --full-history	Print full history from ".rav1ator-cli-history" file
+	-b, --binaries		Just install binaries, then exit
+	-x, --offline		Don't check for updates.
 ```
 
 rAV1ator CLI Edition can:
@@ -12,6 +24,8 @@ rAV1ator CLI Edition can:
 - Check if it is installed & up to date on its own without a package manager
 
 - Download AVX2-optimized encoder binaries compiled with `-O3 -flto` in most cases & allow the user to install them with detailed instructions
+
+- Remember encoding history and let you view your whole history or parts of it
 
 - Encode with x264, x265, aomenc, SVT-AV1, or rav1e, set a speed preset, CRF/quality value, FFmpeg parameters, and encoder parameters
 
