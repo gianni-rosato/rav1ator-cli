@@ -1,7 +1,5 @@
 #!/bin/bash
 
-# av1an -i "e6.mkv" --verbose --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height 720 -e aom --force -v "--good --bit-depth=10 --end-usage=q --threads=2 --tune=omni --ssim-rd-mult=150 --tune-content=psy --arnr-maxframes=15 --arnr-strength=6 --tpl-strength=8 --enable-cdef=2 --loopfilter-control=3 --quant-sharpness=5 --deltaq-mode=1 --aq-mode=0 --enable-keyframe-filtering=1 --enable-qm=1 --lag-in-frames=48 --sb-size=dynamic --denoise-noise-level=2 --enable-dnl-denoising=0 --cpu-used=3 --cq-level=36" --pix-format yuv420p10le -f "-vf scale=1920:1080:flags=bicubic:param0=0:param1=1/2 -an" --set-thread-affinity 2 -w 12 -o "e6_e.mkv"
-
 INFILE=$1
 OUTFILE=$2
 EXTENSION=${1##*.}
@@ -23,21 +21,120 @@ rav1e_link="https://autumn.revolt.chat/attachments/download/Qn02SIpAKt1TJsnU0LK-
 x265_link="https://autumn.revolt.chat/attachments/download/lgk01Z-Ax5tmBZ2WUNXkbYEN4deAel3aKxNWzD_E2O"
 x264_link="https://autumn.revolt.chat/attachments/download/WWeUuEWViblcvNAQRCmrV23ccCe2MJSoZtOmGdy5hQ"
 svt_link="https://autumn.revolt.chat/attachments/download/jSawgAFXx62YCk06m0zEucbK45KijUzT4HPMuX6JUu"
-aom_link="https://autumn.revolt.chat/attachments/download/OA-woXb8eUPhmB0z4NGZkxn88G_Q5zDpEqusn7DzH1"
+aom_link="https://autumn.revolt.chat/attachments/download/UEu7LnYIDgwiTkt-8uv2AzP_ei2NEu15JxuytCxSZk"
 
 
 # Every time there's an update, this will change & is checked against rav1ator-cli.md5 in the git repo. to generate rav1ator-cli.md5, just `rm rav1ator-cli.md5 && md5sum rav1ator-cli | awk '{print $1}' >> rav1ator-cli.md5`.
 script_md5=$(md5sum /usr/local/bin/rav1ator-cli | awk '{print $1}')
-version="0.0.3a"
+version="0.1.0"
 
 bin_loc=$(which rav1ator-cli)
 
 catrom="bicubic:param0=0:param1=1/2"
 
+# Binary installation prompt
+encoders_install () {
+	str=$(gum confirm "Install relevant encoder binaries?" --selected.background="161" --selected.foreground="15" --unselected.foreground="248" && echo "Yes" || echo "No")
+	echo "$str"
+}
 
-if [ $# -ne 2 ]; then
+
+if [[ "$*" == "-h" || "$*" == "--help" ]]; then
+	echo -e "${BOLD}rAV1ator${RESET}${GREY}:${RESET} ${AV1RED}${BOLD}CLI${RESET} ${BOLD}Edition${RESET}${GREY}${BLINK}${BOLD}_${RESET} ${GREY}v$version${RESET}"
+	echo -e ""
+    echo -e "${GREY}Usage${RESET}:"
+	echo -e "	rav1ator-cli [${AV1RED}input${RESET}] [${AV1RED}output${RESET}] [${GREY}--offline${RESET}]"
+	echo -e ""
+	echo -e "${GREY}Dependencies (Arch)${RESET}: "
+	echo -e "	rust ffmpeg python mkvtoolnix-cli vapoursynth gum numactl l-smash vapoursynth-plugin-lsmashsource av1an ffms2"
+	echo -e ""
+	echo -e "${GREY}Options${RESET}: (Currently, only one option is useful at a time)"
+	echo -e "	-h, --help		Print this help section"
+	echo -e "	-l, --last-used		Print last used encode settings from history"
+	echo -e "	-f, --full-history	Print full history from \".rav1ator-cli-history\" file"
+	echo -e "	-b, --binaries		Just install binaries, then exit"
+	echo -e "	-x, --offline		Don't check for updates."
+	exit 1
+elif [[ "$*" == "-l" || "$*" == "--last-used" ]]; then
+	lastused1=$(cat ~/.rav1ator-cli-history | tail -n 2 | head -n 1)
+	lastused2=$(cat ~/.rav1ator-cli-history | tail -n 2 | tail -n 1)
+	echo -e "${GREY}$lastused1${RESET}"
+	echo -e "$lastused2"
+	exit 1
+elif [[ "$*" == "-f" || "$*" == "--full-history" ]]; then
+	cat ~/.rav1ator-cli-history
+	exit 1
+elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
+	echo -e "Binaries last updated by rav1ator-cli on ${BOLD}8 Nov 2023${RESET}"
+	manualInstall=$(encoders_install)
+	case $manualInstall in
+		"Yes")
+			rm -rf ~/rav1ator_cli_encoders
+			mkdir ~/rav1ator_cli_encoders
+			cd ~/rav1ator_cli_encoders ; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder aom-av1-lavish..." -- curl -OJ "$aom_link"
+			cd ~/rav1ator_cli_encoders ; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder SVT-AV1..." -- curl -OJ "$svt_link"
+			cd ~/rav1ator_cli_encoders ; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder rav1e..." -- curl -OJ "$rav1e_link"
+			cd ~/rav1ator_cli_encoders ; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder x264..." -- curl -OJ "$x264_link"
+			cd ~/rav1ator_cli_encoders ; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder x265..." -- curl -OJ "$x265_link"
+			gum spin --spinner.foreground="161" --spinner line --title "Decompressing binary archives..." -- zstd -d ~/rav1ator_cli_encoders/*.zst && rm ~/rav1ator_cli_encoders/*.zst
+			
+			rav1e_sum="$(cd ~/rav1ator_cli_encoders ; sha256sum rav1e | awk '{print $1}' | tr -dc "abcdefg1234567890")"
+			x265_sum=$(cd ~/rav1ator_cli_encoders ; sha256sum x265 | awk '{print $1}' | tr -dc "abcdefg1234567890")
+			x264_sum=$(cd ~/rav1ator_cli_encoders ; sha256sum x264 | awk '{print $1}' | tr -dc "abcdefg1234567890")
+			svt_sum=$(cd ~/rav1ator_cli_encoders ; sha256sum SvtAv1EncApp | awk '{print $1}' | tr -dc "abcdefg1234567890")
+			aom_sum=$(cd ~/rav1ator_cli_encoders ; sha256sum aomenc | awk '{print $1}' | tr -dc "abcdefg1234567890")
+			
+			if [ "$rav1e_sum" != "6c12d77d91b05a2321acae4bc3d9f1d3c7fe532014de6fb4cb623a7f2d75708a" ]; then
+				echo -e "$rav1e_sum"
+				echo -e "$rav1e_sha256"
+				echo -e "${GREY}Bad binary integrity detected:${RESET} rav1e"
+				echo -e "${GREY}Please contact the maintainer of rav1ator-cli.${RESET}"
+				exit 1
+			elif [ "$x265_sum" != "e857e5c8b803de4849e0d75535ef5441008d6360327b7ff67d0e9295195a11e0" ]; then
+				echo -e "${GREY}Bad binary integrity detected:${RESET} x265"
+				echo -e "${GREY}Please contact the maintainer of rav1ator-cli.${RESET}"
+				exit 1
+			elif [ "$x264_sum" != "47a872f6485b5b925627c038946646db7a5b105d71c5a34869009b3a38da38d1" ]; then
+				echo -e "${GREY}Bad binary integrity detected:${RESET} x264"
+				echo -e "${GREY}Please contact the maintainer of rav1ator-cli.${RESET}"
+				exit 1
+			elif [ "$svt_sum" != "af75eee69583e42aa0c34daa25743567c6ac1be355d4f638d4d3b9e3dfe76d11" ]; then
+				echo -e "${GREY}Bad binary integrity detected:${RESET} SvtAv1EncApp"
+				echo -e "${GREY}Please contact the maintainer of rav1ator-cli.${RESET}"
+				exit 1
+			elif [ "$aom_sum" != "a8955f68ef94f05d263aa1be781225d61b68784a6de35a324bd7437d7aa84160" ]; then
+				echo -e "${GREY}Bad binary integrity detected:${RESET} aomenc"
+				echo -e "${GREY}Please contact the maintainer of rav1ator-cli.${RESET}"
+				exit 1
+			fi
+			
+			chmod +x ~/rav1ator_cli_encoders/*
+			gum style --foreground 15 --border-foreground 248 --border double --align center --width 74 --margin "0 1" --align="left" --padding "0 1" "$INTRO_HELP1"
+			sleep 0.1
+			gum style --foreground 15 --border-foreground 161 --border double --align center --width 74 --margin "0 1" --align="left" --padding "0 1" "$INTRO_HELP2"
+			sleep 0.1
+			gum style --foreground 15 --border-foreground 248 --border double --align center --width 74 --margin "0 1" --padding "0 1" "$INTRO_HELPX"
+			sleep 0.1
+			gum style --italic --foreground 248 --border-foreground 248 --border double --align center --width 74 --margin "0 1" --padding "1 1" "$INTRO_HELP3"
+			sleep 0.1
+			echo -ne "${GREY}Binaries require an AVX2-capable CPU (Haswell or newer) and are highly optimized, so they will almost certainly be faster (and likely also newer) than the default options offered by your package manager. "
+			sleep 0.3
+			echo -e "\e]8;;https://wiki.x266.mov/blog/av1-encoding-for-dummies/#arch\e\\Link for More Info\e]8;;\e\\"
+			exit 1
+			;;
+		"No")
+			echo -e "${GREY}Binary installation aborted.${RESET}"
+			exit 1
+			;;
+	esac
+elif [[ "$3" == "-x" || "$3" == "--offline" ]]; then
+	script_md5="DEBUG"
+fi
+
+if [[ $# != 2 && $3 != "-x" && $3 != "--offline" ]]; then
     echo -e "	${BOLD}rAV1ator${RESET}${GREY}:${RESET} ${AV1RED}${BOLD}CLI${RESET} ${BOLD}Edition${RESET}${GREY}${BLINK}${BOLD}_${RESET}	      ${GREY}v$version${RESET}"
     echo -e "	${GREY}Usage:${RESET} rav1ator-cli [${AV1RED}input${RESET}] [${AV1RED}output${RESET}]"
+	echo -e "	${GREY}rav1ator-cli${RESET} -h ${GREY}/${RESET} --help ${GREY}to get help${RESET}"
     exit 1
 fi
 
@@ -63,12 +160,6 @@ update_hash_check () {
 # 	str="DEBUG"
 # 	echo "$str"
 # }
-
-# Manual Encoder Installation
-encoders_install () {
-	str=$(gum confirm "Install relevant encoder binaries?" --selected.background="161" --selected.foreground="15" --unselected.foreground="248" && echo "Yes" || echo "No")
-	echo "$str"
-}
 
 # Encoder Selection
 encoder_select () {
@@ -169,7 +260,7 @@ param_text () {
 param_select () {
 	if [[ "$encoder" == "aomenc" ]]; then
 		yn=$(gum choose --limit=1 --cursor.foreground="161" --item.foreground="248" Default HDR10 Animation Custom)
-	elif [[ "$encoder" != "x264" && "$encoder" != "x265" && "$encoder" != "SVT-AV1" ]]; then
+	elif [[ "$encoder" != "x264" && "$encoder" != "x265" ]]; then
 		yn=$(gum choose --limit=1 --cursor.foreground="161" --item.foreground="248" Default HDR10 Custom)
 	else
 		yn=$(gum choose --limit=1 --cursor.foreground="161" --item.foreground="248" Default Custom)
@@ -200,11 +291,11 @@ param_select () {
 		"HDR10")
 			case $encoder in
 				"aomenc")
-					str="--good --bit-depth=10 --end-usage=q --threads=2 --tune=ssim --ssim-rd-mult=125 --tune-content=psy --arnr-maxframes=15 --arnr-strength=2 --enable-cdef=0 --loopfilter-control=3 --quant-sharpness=3 --deltaq-mode=5 --aq-mode=0 --enable-keyframe-filtering=1 --luma-bias=36 --luma-bias-strength=16 --luma-bias-midpoint=60 --enable-qm=1 --quant-b-adapt=1 --lag-in-frames=48 --sb-size=dynamic --disable-kf --kf-max-dist=9999 --cpu-used=$speed --cq-level=$crf --denoise-noise-level=$grain --enable-dnl-denoising=0 --color-primaries=bt2020 --transfer-characteristics=smpte2084 --matrix-coefficients=bt2020ncl"
+					str="--good --bit-depth=10 --end-usage=q --threads=2 --tune=ssim --ssim-rd-mult=125 --tune-content=psy --arnr-maxframes=15 --arnr-strength=2 --enable-cdef=0 --loopfilter-control=3 --quant-sharpness=3 --deltaq-mode=6 --aq-mode=0 --enable-keyframe-filtering=1 --luma-bias=36 --luma-bias-strength=16 --luma-bias-midpoint=60 --enable-qm=1 --quant-b-adapt=1 --lag-in-frames=48 --sb-size=dynamic --disable-kf --kf-max-dist=9999 --cpu-used=$speed --cq-level=$crf --denoise-noise-level=$grain --enable-dnl-denoising=0 --color-primaries=bt2020 --transfer-characteristics=smpte2084 --matrix-coefficients=bt2020ncl"
 					;;
-				# "SVT-AV1") COMING SOON!
-					# str="--input-depth 10 --tune 2 --enable-overlays 1 --enable-qm 1 --qm-min 0 --qm-max 15 --keyint -1 --scd 0 --lp 1 --irefresh-type 1 --crf "$crf" --preset "$speed" --film-grain "$grain" --film-grain-denoise 0"
-					# ;;
+				"SVT-AV1")
+					str="--input-depth 10 --tune 2 --enable-overlays 1 --enable-qm 1 --qm-min 0 --qm-max 15 --keyint -1 --scd 0 --lp 1 --irefresh-type 1 --crf "$crf" --preset "$speed" --film-grain "$grain" --film-grain-denoise 0 --color-primaries 9 --transfer-characteristics 16 --matrix-coefficients 9"
+					;;
 				"rav1e")
 					str="--tiles 8 --threads 2 --no-scene-detection -s "$speed" --quantizer "$crf" --photon-noise "$grain" --primaries BT2020 --transfer SMPTE2084 --matrix BT2020NCL"
 					;;
@@ -283,8 +374,7 @@ encode_start_select () {
 
 done=0
 while [[ $done -eq 0 ]] ; do
-	ulimit -n 200000
-	echo -e "${BOLD}rAV1ator${RESET}${GREY}:${RESET} ${AV1RED}${BOLD}CLI${RESET} ${BOLD}Edition${RESET}${GREY}${BLINK}${BOLD}_${RESET}"
+	echo -n -e "${BOLD}rAV1ator${RESET}${GREY}:${RESET} ${AV1RED}${BOLD}CLI${RESET} ${BOLD}Edition${RESET}${GREY}${BLINK}${BOLD}_${RESET}"
 	
 	isGumInstalled=$(which gum 2>&1 | awk '{print $2}' 2>&1)
 	
@@ -298,79 +388,23 @@ while [[ $done -eq 0 ]] ; do
 		echo -e "${GREY}run${RESET} sudo cp rav1ator-cli /usr/local/bin ${GREY}in your current directory.${RESET}"
 		exit 1
 	fi
-	
+
 	updateCheck=$(update_hash_check)
-	if [[ "$script_md5" != "$updateCheck" ]]; then
+	if [[ "$script_md5" == "DEBUG" ]]; then
+		echo -e " ${GREY}Running in offline mode, skipping update checks.${RESET}\n"
+	elif [[ "$script_md5" != "$updateCheck" ]]; then
 		curl -sOJ https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli
-		echo -e "There is a ${BOLD}New Update${RESET} available!"
+		echo -e "\nThere is a ${BOLD}New Update${RESET} available!"
 		echo -e "${GREY}We've downloaded it for you. You can install it by running the following command in your current directory:${RESET}"
 		echo -e "sudo cp rav1ator-cli /usr/local/bin"
 		exit 1
-	elif [[ "$script_md5" == "DEBUG" && "$updateCheck" == "DEBUG" ]]; then
-		echo "Skipping update checks. Please disable this behavior once done. Line 61-65"
+	else
+		echo -e "\n"
 	fi
 	
-	manualInstall=$(encoders_install)
-	
-	case $manualInstall in
-		"Yes")
-			rm -rf ~/rav1ator_cli_encoders
-			mkdir ~/rav1ator_cli_encoders
-			cd ~/rav1ator_cli_encoders ; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder aom-av1-lavish..." -- curl -OJ "$aom_link"
-			cd ~/rav1ator_cli_encoders ; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder SVT-AV1..." -- curl -OJ "$svt_link"
-			cd ~/rav1ator_cli_encoders ; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder rav1e..." -- curl -OJ "$rav1e_link"
-			cd ~/rav1ator_cli_encoders ; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder x264..." -- curl -OJ "$x264_link"
-			cd ~/rav1ator_cli_encoders ; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder x265..." -- curl -OJ "$x265_link"
-			gum spin --spinner.foreground="161" --spinner line --title "Decompressing binary archives..." -- zstd -d ~/rav1ator_cli_encoders/*.zst && rm ~/rav1ator_cli_encoders/*.zst
-			
-			rav1e_sum="$(cd ~/rav1ator_cli_encoders ; sha256sum rav1e | awk '{print $1}' | tr -dc "abcdefg1234567890")"
-			x265_sum=$(cd ~/rav1ator_cli_encoders ; sha256sum x265 | awk '{print $1}' | tr -dc "abcdefg1234567890")
-			x264_sum=$(cd ~/rav1ator_cli_encoders ; sha256sum x264 | awk '{print $1}' | tr -dc "abcdefg1234567890")
-			svt_sum=$(cd ~/rav1ator_cli_encoders ; sha256sum SvtAv1EncApp | awk '{print $1}' | tr -dc "abcdefg1234567890")
-			aom_sum=$(cd ~/rav1ator_cli_encoders ; sha256sum aomenc | awk '{print $1}' | tr -dc "abcdefg1234567890")
-			
-			if [ "$rav1e_sum" != "6c12d77d91b05a2321acae4bc3d9f1d3c7fe532014de6fb4cb623a7f2d75708a" ]; then
-				echo -e "$rav1e_sum"
-				echo -e "$rav1e_sha256"
-				echo -e "${GREY}Bad binary integrity detected:${RESET} rav1e"
-				echo -e "${GREY}Please contact the maintainer of rav1ator-cli.${RESET}"
-				exit 1
-			elif [ "$x265_sum" != "e857e5c8b803de4849e0d75535ef5441008d6360327b7ff67d0e9295195a11e0" ]; then
-				echo -e "${GREY}Bad binary integrity detected:${RESET} x265"
-				echo -e "${GREY}Please contact the maintainer of rav1ator-cli.${RESET}"
-				exit 1
-			elif [ "$x264_sum" != "47a872f6485b5b925627c038946646db7a5b105d71c5a34869009b3a38da38d1" ]; then
-				echo -e "${GREY}Bad binary integrity detected:${RESET} x264"
-				echo -e "${GREY}Please contact the maintainer of rav1ator-cli.${RESET}"
-				exit 1
-			elif [ "$svt_sum" != "af75eee69583e42aa0c34daa25743567c6ac1be355d4f638d4d3b9e3dfe76d11" ]; then
-				echo -e "${GREY}Bad binary integrity detected:${RESET} SvtAv1EncApp"
-				echo -e "${GREY}Please contact the maintainer of rav1ator-cli.${RESET}"
-				exit 1
-			elif [ "$aom_sum" != "ba8ea408bd2cc9758cb384f62a1e580bb7b2bff0bab1716f8d8a3f62d8a61c54" ]; then
-				echo -e "${GREY}Bad binary integrity detected:${RESET} aomenc"
-				echo -e "${GREY}Please contact the maintainer of rav1ator-cli.${RESET}"
-				exit 1
-			fi
-			
-			chmod +x ~/rav1ator_cli_encoders/*
-			gum style --foreground 15 --border-foreground 248 --border double --align center --width 74 --margin "0 1" --align="left" --padding "0 1" "$INTRO_HELP1"
-			sleep 0.1
-			gum style --foreground 15 --border-foreground 161 --border double --align center --width 74 --margin "0 1" --align="left" --padding "0 1" "$INTRO_HELP2"
-			sleep 0.1
-			gum style --foreground 15 --border-foreground 248 --border double --align center --width 74 --margin "0 1" --padding "0 1" "$INTRO_HELPX"
-			sleep 0.1
-			gum style --italic --foreground 248 --border-foreground 248 --border double --align center --width 74 --margin "0 1" --padding "1 1" "$INTRO_HELP3"
-			sleep 0.1
-			echo -ne "${GREY}*Binaries require an AVX2-capable CPU (Haswell or newer) and are highly optimized, so they will almost certainly be faster (and likely also newer) than the default options offered by your package manager. "
-			sleep 0.3
-			echo -e "\e]8;;https://wiki.x266.mov/blog/av1-encoding-for-dummies/#arch\e\\Link for More Info\e]8;;\e\\"
-			exit 1
-			;;
-		"No")
-			echo -e "${GREY}Binary installation aborted.${RESET}\n"
-			;;
-	esac
+	# Prompt users to install encoder binaries with simple instructions
+	echo -e "If you'd like to install encoder binaries, please run ${BOLD}rav1ator-cli -b${RESET}"
+	echo -e "${GREY}Binaries last updated on ${BOLD}8 Nov 2023${RESET}\n"
 	
 	echo "Which encoder would you like to select?"
 	encoder=$(encoder_select)
@@ -424,15 +458,16 @@ while [[ $done -eq 0 ]] ; do
     	params="$(param_select)"
     	echo -e "${GREY}>${RESET} ${AV1RED}\"$params\"${RESET}\n"
     	
-    	# affinitytext=$(affinity_text)
-    	# echo -e "$affinitytext"
-    	# affinity=$(affinity_select)
-    	# echo -e "${GREY}>${RESET} ${AV1RED}$affinity${RESET}"
-    	
     	ffmpegtext=$(ffmpeg_text)
     	echo -e "$ffmpegtext"
     	ffmpegopts="$(ffmpeg_select)"
     	echo -e "${GREY}>${RESET} ${AV1RED}\"$ffmpegopts\"${RESET}\n"
+
+		if [[ "$ffmpegopts" == "-vf scale=1280:720:flags=bicubic:param0=0:param1=1/2 -an" ]]; then
+			sc_downscale_res="720"
+		else
+			sc_downscale_res="1080"
+		fi
     	
     	worker_string=$(worker_text)
     	echo -e "$worker_string"
@@ -446,31 +481,35 @@ while [[ $done -eq 0 ]] ; do
     		"Yes")
 				gum spin sleep 1.3 --spinner.foreground="161" --spinner line --show-output --title "Generating script..."
     			RAND=$(gum spin md5sum $INFILE --spinner.foreground="161" --spinner line --show-output --title "Hashing input file..." | head -c 6)
-    			echo -e "av1an -i \"$INFILE\" --verbose --temp \"rAV1ator-CLI_temp${RAND}\" --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height 1080 -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" > "rAV1ator-CLI_job${RAND}.sh"
-    			# av1an -i \"$INFILE\" --verbose --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height 1080 -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"
-    			chmod +x "rAV1ator-CLI_job${RAND}.sh"
+    			echo -e "ulimit -n 200000 && av1an -i \"$INFILE\" --verbose --temp \"rAV1ator-CLI_temp${RAND}\" --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" > "rAV1ator-CLI_job${RAND}.sh"
+				echo "-------" >> ~/.rav1ator-cli-history
+				echo $(date) >> ~/.rav1ator-cli-history
+				echo -e "ulimit -n 200000 && av1an -i \"$INFILE\" --verbose --temp \"rAV1ator-CLI_temp${RAND}\" --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" >> ~/.rav1ator-cli-history
+				chmod +x "rAV1ator-CLI_job${RAND}.sh"
     			gum spin --spinner.foreground="161" --spinner line --title "Executing rAV1ator-CLI_job${RAND}.sh..." -- sleep 0.3
-    			./"rAV1ator-CLI_job${RAND}.sh" && rm "rAV1ator-CLI_job${RAND}.sh"
-    			# rm -rf "rAV1ator-CLI_temp${RAND}"
+    			./"rAV1ator-CLI_job${RAND}.sh"
     			echo -e "${BOLD}Encoding Finished!${RESET} Thanks for checking out ${BOLD}rAV1ator${RESET}${GREY}:${RESET} ${AV1RED}${BOLD}CLI${RESET} ${BOLD}Edition${RESET}${GREY}${BLINK}${BOLD}!${RESET}"
-    			;;
+    			rm "rAV1ator-CLI_job${RAND}.sh"
+				;;
     		"No")
     			echo -e "${GREY}Encoding aborted.${RESET}"
     			;;
     		"Resume")
 				gum spin sleep 1.3 --spinner.foreground="161" --spinner line --show-output --title "Generating script..."
     			RAND=$(gum spin md5sum $INFILE --spinner.foreground="161" --spinner line --show-output --title "Hashing input file..." | head -c 6)
-    			echo -e "av1an -i \"$INFILE\" --verbose --resume --temp \"rAV1ator-CLI_temp${RAND}\" --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height 1080 -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" > "rAV1ator-CLI_job${RAND}.sh"
-    			# av1an -i \"$INFILE\" --verbose --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height 1080 -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"
-    			chmod +x "rAV1ator-CLI_job${RAND}.sh"
+    			echo -e "ulimit -n 200000 && av1an -i \"$INFILE\" --verbose --resume --temp \"rAV1ator-CLI_temp${RAND}\" --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" > "rAV1ator-CLI_job${RAND}.sh"
+    			echo "-------" >> ~/.rav1ator-cli-history
+				echo $(date) >> ~/.rav1ator-cli-history
+				echo -e "ulimit -n 200000 && av1an -i \"$INFILE\" --verbose --resume --temp \"rAV1ator-CLI_temp${RAND}\" --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" >> ~/.rav1ator-cli-history
+				chmod +x "rAV1ator-CLI_job${RAND}.sh"
     			gum spin --spinner.foreground="161" --spinner line --title "Executing rAV1ator-CLI_job${RAND}.sh..." -- sleep 0.3
-    			./"rAV1ator-CLI_job${RAND}.sh" && rm "rAV1ator-CLI_job${RAND}.sh"
-    			# rm -rf "rAV1ator-CLI_temp${RAND}"
+    			./"rAV1ator-CLI_job${RAND}.sh"
     			echo -e "${BOLD}Encoding Finished!${RESET} Thanks for checking out ${BOLD}rAV1ator${RESET}${GREY}:${RESET} ${AV1RED}${BOLD}CLI${RESET} ${BOLD}Edition${RESET}${GREY}${BLINK}${BOLD}!${RESET}"
-    			;;
+    			rm "rAV1ator-CLI_job${RAND}.sh"
+				;;
 			"Print")
 				gum spin sleep 1.2 --spinner.foreground="161" --spinner line --show-output --title "Generating script..."
-				echo -e "${GREY}Generated script${RESET}${AV1RED}:${RESET} av1an -i \"$INFILE\" --verbose --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height 1080 -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\""
+				echo -e "${GREY}Generated script${RESET}${AV1RED}:${RESET} av1an -i \"$INFILE\" --verbose --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\""
     	esac
 done=1
 done
