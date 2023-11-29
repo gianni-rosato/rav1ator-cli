@@ -1,10 +1,12 @@
 #!/bin/bash
 
+# Specify input & output files as first & second CLI args
 INFILE=$1
 OUTFILE=$2
 EXTENSION=${1##*.}
 EXTENSION2=${2##*.}
 
+# Escape codes for colors used throughout the tool's formatted text
 AV1RED="\033[38;5;161m"
 GREY="\033[38;5;248m"
 BOLD="\033[1m"
@@ -12,11 +14,13 @@ ULINE="\033[4m"
 BLINK="\033[5m"
 RESET="\033[0m"
 
+# Help strings
 INTRO_HELP1="Binaries will be found in a folder called \"rav1ator_cli_encoders\" in your Home directory. Please copy these to your /usr/local/bin folder, which allows you to use Linux programs from anywhere on your computer in the terminal. You can do that by entering the command below."
 INTRO_HELPX="Additionally, you may need to install Av1an, zstd, mkvtoolnix-cli, vapoursynth-plugin-lsmashsource, ffmpeg, and other necessary utilities from your package manager before using rav1ator-cli."
 INTRO_HELP2="sudo cp ~/rav1ator_cli_encoders/* /usr/local/bin"
 INTRO_HELP3="If you're using ZSH, specifically with Oh My ZSH, you may only need to uncomment the second line by removing the \"#\" in front of it in your .zshrc file. You can edit this file by running \"nano ~/.zshrc\""
 
+# Binary links for the pre-built binaries. Using Revolt's CDN
 rav1e_link="https://autumn.revolt.chat/attachments/download/Qn02SIpAKt1TJsnU0LK-TBlDCQZWAGGDJzurvsT7xl"
 x265_link="https://autumn.revolt.chat/attachments/download/lgk01Z-Ax5tmBZ2WUNXkbYEN4deAel3aKxNWzD_E2O"
 x264_link="https://autumn.revolt.chat/attachments/download/WWeUuEWViblcvNAQRCmrV23ccCe2MJSoZtOmGdy5hQ"
@@ -26,19 +30,21 @@ aom_link="https://autumn.revolt.chat/attachments/download/UEu7LnYIDgwiTkt-8uv2Az
 
 # Every time there's an update, this will change & is checked against rav1ator-cli.md5 in the git repo. to generate rav1ator-cli.md5, just `rm rav1ator-cli.md5 && md5sum rav1ator-cli | awk '{print $1}' >> rav1ator-cli.md5`.
 script_md5=$(md5sum /usr/local/bin/rav1ator-cli | awk '{print $1}')
-version="0.1.0"
+version="0.1.1"
 
+# Check where the script is located
 bin_loc=$(which rav1ator-cli)
 
+# Catmull-Rom FFmpeg string
 catrom="bicubic:param0=0:param1=1/2"
 
-# Binary installation prompt
+# Binary installation prompt if the user passes -b
 encoders_install () {
 	str=$(gum confirm "Install relevant encoder binaries?" --selected.background="161" --selected.foreground="15" --unselected.foreground="248" && echo "Yes" || echo "No")
 	echo "$str"
 }
 
-
+# If the user passes a help flag
 if [[ "$*" == "-h" || "$*" == "--help" ]]; then
 	echo -e "${BOLD}rAV1ator${RESET}${GREY}:${RESET} ${AV1RED}${BOLD}CLI${RESET} ${BOLD}Edition${RESET}${GREY}${BLINK}${BOLD}_${RESET} ${GREY}v$version${RESET}"
 	echo -e ""
@@ -55,22 +61,31 @@ if [[ "$*" == "-h" || "$*" == "--help" ]]; then
 	echo -e "	-b, --binaries		Just install binaries, then exit"
 	echo -e "	-x, --offline		Don't check for updates."
 	exit 1
+
+# If the user passes a last used flag, print last used in history
 elif [[ "$*" == "-l" || "$*" == "--last-used" ]]; then
 	lastused1=$(cat ~/.rav1ator-cli-history | tail -n 2 | head -n 1)
 	lastused2=$(cat ~/.rav1ator-cli-history | tail -n 2 | tail -n 1)
 	echo -e "${GREY}$lastused1${RESET}"
 	echo -e "$lastused2"
 	exit 1
+
+# If the user passes a full history flag, print the full history
 elif [[ "$*" == "-f" || "$*" == "--full-history" ]]; then
 	cat ~/.rav1ator-cli-history
 	exit 1
+
+# If the user passes a binary installation flag, prompt to install binaries
 elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
 	echo -e "Binaries last updated by rav1ator-cli on ${BOLD}8 Nov 2023${RESET}"
 	manualInstall=$(encoders_install)
 	case $manualInstall in
 		"Yes")
+			# Clean up old binary directory & make a new one
 			rm -rf ~/rav1ator_cli_encoders
 			mkdir ~/rav1ator_cli_encoders
+
+			# Download encoder binaries to the binary directory in the user's home dir
 			cd ~/rav1ator_cli_encoders ; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder aom-av1-lavish..." -- curl -OJ "$aom_link"
 			cd ~/rav1ator_cli_encoders ; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder SVT-AV1..." -- curl -OJ "$svt_link"
 			cd ~/rav1ator_cli_encoders ; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder rav1e..." -- curl -OJ "$rav1e_link"
@@ -78,12 +93,14 @@ elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
 			cd ~/rav1ator_cli_encoders ; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder x265..." -- curl -OJ "$x265_link"
 			gum spin --spinner.foreground="161" --spinner line --title "Decompressing binary archives..." -- zstd -d ~/rav1ator_cli_encoders/*.zst && rm ~/rav1ator_cli_encoders/*.zst
 			
+			# Check the SHA256 hash of each binary to make sure they are correct
 			rav1e_sum="$(cd ~/rav1ator_cli_encoders ; sha256sum rav1e | awk '{print $1}' | tr -dc "abcdefg1234567890")"
 			x265_sum=$(cd ~/rav1ator_cli_encoders ; sha256sum x265 | awk '{print $1}' | tr -dc "abcdefg1234567890")
 			x264_sum=$(cd ~/rav1ator_cli_encoders ; sha256sum x264 | awk '{print $1}' | tr -dc "abcdefg1234567890")
 			svt_sum=$(cd ~/rav1ator_cli_encoders ; sha256sum SvtAv1EncApp | awk '{print $1}' | tr -dc "abcdefg1234567890")
 			aom_sum=$(cd ~/rav1ator_cli_encoders ; sha256sum aomenc | awk '{print $1}' | tr -dc "abcdefg1234567890")
 			
+			# If the hash is wrong, exit the tool & inform the user
 			if [ "$rav1e_sum" != "6c12d77d91b05a2321acae4bc3d9f1d3c7fe532014de6fb4cb623a7f2d75708a" ]; then
 				echo -e "$rav1e_sum"
 				echo -e "$rav1e_sha256"
@@ -108,7 +125,10 @@ elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
 				exit 1
 			fi
 			
+			# Make binaries executable
 			chmod +x ~/rav1ator_cli_encoders/*
+			
+			# Print help flags from the intro
 			gum style --foreground 15 --border-foreground 248 --border double --align center --width 74 --margin "0 1" --align="left" --padding "0 1" "$INTRO_HELP1"
 			sleep 0.1
 			gum style --foreground 15 --border-foreground 161 --border double --align center --width 74 --margin "0 1" --align="left" --padding "0 1" "$INTRO_HELP2"
@@ -123,14 +143,19 @@ elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
 			exit 1
 			;;
 		"No")
+
+			# Notify that installation was aborted
 			echo -e "${GREY}Binary installation aborted.${RESET}"
 			exit 1
 			;;
 	esac
+
+# If offline, set the script's MD5 hash to "DEBUG" to bypass update check
 elif [[ "$3" == "-x" || "$3" == "--offline" ]]; then
 	script_md5="DEBUG"
 fi
 
+# If the user has different args or no args, print generic output
 if [[ $# != 2 && $3 != "-x" && $3 != "--offline" ]]; then
     echo -e "	${BOLD}rAV1ator${RESET}${GREY}:${RESET} ${AV1RED}${BOLD}CLI${RESET} ${BOLD}Edition${RESET}${GREY}${BLINK}${BOLD}_${RESET}	      ${GREY}v$version${RESET}"
     echo -e "	${GREY}Usage:${RESET} rav1ator-cli [${AV1RED}input${RESET}] [${AV1RED}output${RESET}]"
@@ -138,10 +163,13 @@ if [[ $# != 2 && $3 != "-x" && $3 != "--offline" ]]; then
     exit 1
 fi
 
+# If no extension on the input file, notify user
 if [ -z "$EXTENSION" ]; then
     echo -e "	${BOLD}rAV1ator${RESET}${GREY}:${RESET} ${AV1RED}${BOLD}CLI${RESET} ${BOLD}Edition${RESET}${GREY}${BLINK}${BOLD}_${RESET}"
     echo -e "	Please make sure you have a valid input file."
     exit 1
+
+# If wrong extension on output file, notify user
 elif [ "$EXTENSION2" != "mkv" ]; then
     echo -e "	${BOLD}rAV1ator${RESET}${GREY}:${RESET} ${AV1RED}${BOLD}CLI${RESET} ${BOLD}Edition${RESET}${GREY}${BLINK}${BOLD}_${RESET}"
     echo -e "	Please make sure your output filename has the ${BOLD}.mkv${RESET} file extension."
@@ -154,13 +182,6 @@ update_hash_check () {
 	echo "$str"
 }
 
-# For development use only; overrides hash check with manual values. Comment out when done using.
-# script_md5="DEBUG"
-# update_hash_check () {
-# 	str="DEBUG"
-# 	echo "$str"
-# }
-
 # Encoder Selection
 encoder_select () {
 	# Single threaded
@@ -168,6 +189,7 @@ encoder_select () {
 	echo "$str"
 }
 
+# Inform the user & allow them to select a speed preset for their encoder of choice
 cpu_used_select_text () {
 	case $encoder in
 		"x264") 
@@ -189,6 +211,7 @@ cpu_used_select_text () {
 	echo "$str"
 }
 
+# Prompt for user input to select speed
 cpu_used_select () {
 	case $encoder in
 		"x264") 
@@ -210,10 +233,11 @@ cpu_used_select () {
 	echo "$str"
 }
 
+# CRF selection text
 crf_used_select_text () {
 	case $encoder in
 		"x264") 
-			str="CRF trades file size for quality; lower numbers produce larger, higher-quality files. \nType a number from 1 to 51. We'd recommend ${ULINE}17${RESET} to start."
+			str="CRF trades file size for quality.\nLower numbers produce larger, higher-quality files.\nType a number from 1 to 51. We'd recommend ${ULINE}17${RESET} to start."
 			;;
 		"x265")
 			str="CRF trades file size for quality; lower numbers produce larger, higher-quality files. \nType a number from 0 to 51. We'd recommend ${ULINE}21${RESET} to start."
@@ -231,6 +255,7 @@ crf_used_select_text () {
 	echo "$str"
 }
 
+# The actual user input to set CRF
 crf_used_select () {
 	case $encoder in
 		"x264") 
@@ -252,11 +277,13 @@ crf_used_select () {
 	echo "$str"
 }
 
+# Tell the user what the "Default" encoding parameters are for
 param_text () {
 	str="Would you like to input custom encoder parameters? \"Default\" parameters are tested to excel perceptually in SDR at 1080p for live action. \nIf you're encoding HDR video, \"Default\" will not work for you. \nCustom parameters ${BOLD}will overwrite your speed & quality selections, so you'll need to manually specify them here.${RESET}"
 	echo "$str"
 }
 
+# Allow the user to select their parameters from a couple presets
 param_select () {
 	if [[ "$encoder" == "aomenc" ]]; then
 		yn=$(gum choose --limit=1 --cursor.foreground="161" --item.foreground="248" Default HDR10 Animation Custom)
@@ -312,91 +339,195 @@ param_select () {
 	echo "$str"
 }
 
+# Prompt for film grain synthesis
 grain_text () {
 	str="Would you like to add synthetic film grain to your video? \nThis is recommended for AV1 video, at a value of 1 or 2 to start."
 	echo "$str"
 }
 
+# Confirm if user wants grain synth or not
 grain_confirmation () {
 	yn="$(gum choose --limit=1 --cursor.foreground="161" --item.foreground="248" Yes No)"
 	echo "$yn"
 }
 
+# Get user input grain value
 grain_select () {
 	gamnt=$(gum input --cursor.foreground="161" --prompt.foreground="248" --width 4 --placeholder "Film Grain Amount ($grain_scale)")
 	echo "$gamnt"
 }
 
+# Ask about FFmpeg parameters for cropping and scaling
 ffmpeg_text () {
-	str="Would you like to input custom FFmpeg parameters? \nIf not, there are preset options in the dropdown below for scaling & cropping your video. \nPlease note that these preset options will not produce an output video with audio, and you'll have to add it later yourself."
+	str="Would you like to input custom FFmpeg parameters? \nIf not, the dropdown has presets for scaling & cropping your video. \nIf you'd like to generate your own preset using a target width & height,\nplease note that the crop values will be split in half. \nFor example, a height crop value of 280 pixels means 140 off the top and bottom."
 	echo "$str"
 }
 
+# If the user selects "Generate", have them input target width, target height, width crop, height crop
+ffmpeg_gen_wid () {
+	str=$(gum input --cursor.foreground="161" --prompt.foreground="248" --width 4 --placeholder "Target Video Width")
+	echo "$str"
+}
+
+ffmpeg_gen_hei () {
+	str=$(gum input --cursor.foreground="161" --prompt.foreground="248" --width 4 --placeholder "Target Video Height")
+	echo "$str"
+}
+
+ffmpeg_gen_crow () {
+	str=$(gum input --cursor.foreground="161" --prompt.foreground="248" --width 4 --placeholder "Crop from Sides")
+	echo "$str"
+}
+
+ffmpeg_gen_croh () {
+	str=$(gum input --cursor.foreground="161" --prompt.foreground="248" --width 4 --placeholder "Crop from Top & Bottom")
+	echo "$str"
+}
+
+# Dropdown for selecting an FFmpeg preset
 ffmpeg_select () {
-	yn=$(gum choose --limit=1 --cursor.foreground="161" --item.foreground="248" None 1080p 720p "1080p BluRay" "1080p Univisium" Custom)
+	yn=$(gum choose --limit=1 --cursor.foreground="161" --item.foreground="248" None "Generate..." 1080p 720p "1080p BluRay" "1080p Univisium" 4k Custom)
+	# -a="-c:a libopus -b:a 128k"
+
 	case $yn in
 		"Custom")
 			str="$(gum input --cursor.foreground="161" --prompt.foreground="248" --width 72 --placeholder "Custom FFmpeg Options")"
 			;;
 		"1080p")
-			str="-vf scale=1920:1080:flags=bicubic:param0=0:param1=1/2 -an"
+			str="-vf scale=1920:1080:flags=bicubic:param0=0:param1=1/2"
 			;;
 		"None")
-			str="-an"
+			str="-y"
 			;;
 		"720p")
-			str="-vf scale=1280:720:flags=bicubic:param0=0:param1=1/2 -an"
+			str="-vf scale=1280:720:flags=bicubic:param0=0:param1=1/2"
 			;;
 		"1080p BluRay")
-			str="-vf scale=1920:1080:flags=bicubic:param0=0:param1=1/2,crop=iw:ih-280 -an"
+			str="-vf scale=1920:1080:flags=bicubic:param0=0:param1=1/2,crop=iw:ih-280"
 			;;
 		"1080p Univisium")
-			str="-vf scale=1920:960:flags=bicubic:param0=0:param1=1/2,crop=iw:ih-120 -an"
+			str="-vf scale=1920:960:flags=bicubic:param0=0:param1=1/2,crop=iw:ih-120"
+			;;
+		"4k")
+			str="-vf scale=3840:2160:flags=bicubic:param0=0:param1=1/2"
+			;;
+		"Generate...")
+			wid=$(ffmpeg_gen_wid)
+			hei=$(ffmpeg_gen_hei)
+
+			crow=$(ffmpeg_gen_crow)
+			croh=$(ffmpeg_gen_croh)
+
+			# Format this string based on what the user puts as 0 (or not)
+			if [[ $crow == 0 && $croh == 0 ]]; then
+				str="-vf scale=$wid:$hei:flags=bicubic:param0=0:param1=1/2,crop=iw:ih"
+			elif [[ $crow == 0 ]]; then
+				str="-vf scale=$wid:$hei:flags=bicubic:param0=0:param1=1/2,crop=iw:ih-$croh"
+			elif [[ $croh == 0 ]]; then
+				str="-vf scale=$wid:$hei:flags=bicubic:param0=0:param1=1/2,crop=iw-$crow:ih"
+			else
+				str="-vf scale=$wid:$hei:flags=bicubic:param0=0:param1=1/2,crop=iw-$crow:ih-$croh"
+			fi
 			;;
 	esac
 	echo "$str"
 }
 
-worker_text () {
-	str="Specifying your number of workers tells Av1an how many instances it should spawn of the encoder you selected. \nIf you have a multithreaded CPU, this should be the number of physical cores you have. If not, it is half that. \nTyping 0 allows Av1an to spawn workers automatically, but it is usually conservative. Be cognisant of the amount of RAM available to you."
+# Ask about audio parameters for audio encoding/stripping/filtering
+audio_text () {
+	str="Would you like to input custom audio parameters? \nIf not, the dropdown has presets for encoding, filtering, & stripping your audio."
 	echo "$str"
 }
 
+# Dropdown for selecting an FFmpeg preset
+audio_opts () {
+	yn=$(gum choose --limit=1 --cursor.foreground="161" --item.foreground="248" None Strip "128K Opus Stereo" "256K AAC Stereo" "320K Vorbis Stereo" "224k Opus (5.1)" "336k Opus (7.1)" Custom)
+	# "-c:a libopus -b:a 128k"
+
+	case $yn in
+		"Custom")
+			str="$(gum input --cursor.foreground="161" --prompt.foreground="248" --width 72 --placeholder "Custom Audio Options")"
+			;;
+		"None")
+			str="-c:a copy"
+			;;
+		"Strip")
+			str="-an"
+			;;
+		"128K Opus Stereo")
+			str="-c:a libopus -b:a 128k -ac 2"
+			;;
+		"256K AAC Stereo")
+			str="-c:a aac -aac_coder 1 -b:a 256k -ac 2"
+			;;
+		"320K Vorbis Stereo")
+			str="-c:a libvorbis -b:a 320k -ac 2"
+			;;
+		"224k Opus (5.1)")
+			str="-c:a libopus -b:a 224k"
+			;;
+		"336k Opus (7.1)")
+			str="-c:a libopus -b:a 336k"
+			;;
+	esac
+	echo "$str"
+}
+
+# Inform the user about workers
+worker_text () {
+	str="Specifying your number of workers tells Av1an how many instances it should spawn of the encoder you selected. \nWith enough RAM, you should be able to set this to half the number of threads your CPU has. \nTyping 0 allows Av1an to spawn workers automatically, but it is usually conservative. Be cognisant of the amount of RAM available to you."
+	echo "$str"
+}
+
+# Allow user to select number of Av1an workers
 worker_select () {
 	str="$(gum input --cursor.foreground="161" --prompt.foreground="248" --width 4 --placeholder "Number of Workers")"
 	echo "$str"
 }
 
+# Final prompt, asking user whether or not the want to start the encode, abort, start the encode with the resume option, or print the resulting script derived from their input
 encode_start_select () {
 	str="$(gum choose --limit=1 --cursor.foreground="161" --item.foreground="248" Yes No Resume Print)"
 	echo "$str"
 }
 
-done=0
+# # # # # # # # # # # # # # # # # #
+# THE START OF THE ACTUAL PROGRAM #
+# # # # # # # # # # # # # # # # # #
+
+done=0 # set done to 0
+
+# While done is equal to 0, do everything in here
 while [[ $done -eq 0 ]] ; do
+	# Pretty header
 	echo -n -e "${BOLD}rAV1ator${RESET}${GREY}:${RESET} ${AV1RED}${BOLD}CLI${RESET} ${BOLD}Edition${RESET}${GREY}${BLINK}${BOLD}_${RESET}"
 	
+	# Check if gum is installed, because gum is very important to this program
 	isGumInstalled=$(which gum 2>&1 | awk '{print $2}' 2>&1)
 	
+	# If gum isn't installed inform the user and abort
 	if [ "$isGumInstalled" == "no" ]; then
 		echo -e "${GREY}Please install${RESET} gum ${GREY}from your package manager to get started.${RESET}"
 		exit 1
 	fi
 	
+	# If rav1ator-cli isn't in /usr/local/bin, admonish the user
 	if [ "$bin_loc" != "/usr/local/bin/rav1ator-cli" ]; then
 		echo -e "${GREY}Please install${RESET} rav1ator-cli ${GREY}to your /usr/local/bin to started.${RESET}"
 		echo -e "${GREY}run${RESET} sudo cp rav1ator-cli /usr/local/bin ${GREY}in your current directory.${RESET}"
 		exit 1
 	fi
 
+	# Check for updates, unless the script's MD5 hash reads "DEBUG" (which indicates we're running in offline mode)
 	updateCheck=$(update_hash_check)
 	if [[ "$script_md5" == "DEBUG" ]]; then
 		echo -e " ${GREY}Running in offline mode, skipping update checks.${RESET}\n"
 	elif [[ "$script_md5" != "$updateCheck" ]]; then
+		# Download latest script from GitHub if we need to update
 		curl -sOJ https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli
 		echo -e "\nThere is a ${BOLD}New Update${RESET} available!"
 		echo -e "${GREY}We've downloaded it for you. You can install it by running the following command in your current directory:${RESET}"
-		echo -e "sudo cp rav1ator-cli /usr/local/bin"
+		echo -e "sudo cp rav1ator-cli /usr/local/bin" # Installation instruction
 		exit 1
 	else
 		echo -e "\n"
@@ -406,6 +537,7 @@ while [[ $done -eq 0 ]] ; do
 	echo -e "If you'd like to install encoder binaries, please run ${BOLD}rav1ator-cli -b${RESET}"
 	echo -e "${GREY}Binaries last updated on ${BOLD}8 Nov 2023${RESET}\n"
 	
+	# What encoder does the user want to use? They can select
 	echo "Which encoder would you like to select?"
 	encoder=$(encoder_select)
 	case $encoder in
@@ -430,16 +562,19 @@ while [[ $done -eq 0 ]] ; do
 	esac
     	echo -e "${GREY}>${RESET} ${AV1RED}$encoder${RESET}\n"
     	
+		# Speed the user set gets assigned to "speed" variable
     	speed_string=$(cpu_used_select_text)
     	echo -e "$speed_string"
     	speed=$(cpu_used_select)
     	echo -e "${GREY}>${RESET} ${AV1RED}$speed${RESET}\n"
     	
+		# CRF input valuee is assigned to "crf" variable
     	crf_string=$(crf_used_select_text)
     	echo -e "$crf_string"
     	crf=$(crf_used_select)
     	echo -e "${GREY}>${RESET} ${AV1RED}$crf${RESET}\n"
 
+		# Unless we're encoding AV1, don't ask about grain
 		if [[ "$encoder" != "x264" && "$encoder" != "x265" ]]; then
 			grain_string=$(grain_text)
 			echo -e "$grain_string"
@@ -453,63 +588,124 @@ while [[ $done -eq 0 ]] ; do
 			fi
     	fi
 
+		# Asking for encoding parameters
     	paramtext=$(param_text)
     	echo -e "$paramtext"
     	params="$(param_select)"
     	echo -e "${GREY}>${RESET} ${AV1RED}\"$params\"${RESET}\n"
     	
+		# Asking for FFmpeg parameters
     	ffmpegtext=$(ffmpeg_text)
     	echo -e "$ffmpegtext"
     	ffmpegopts="$(ffmpeg_select)"
     	echo -e "${GREY}>${RESET} ${AV1RED}\"$ffmpegopts\"${RESET}\n"
 
+		# Set resolution for scene detection based on user input for FFmpeg string.
 		if [[ "$ffmpegopts" == "-vf scale=1280:720:flags=bicubic:param0=0:param1=1/2 -an" ]]; then
 			sc_downscale_res="720"
 		else
 			sc_downscale_res="1080"
 		fi
     	
+		# Asking for audio parameters
+    	audiotext=$(audio_text)
+    	echo -e "$audiotext"
+    	audioopts="$(audio_opts)"
+    	echo -e "${GREY}>${RESET} ${AV1RED}\"$audioopts\"${RESET}\n"
+
+		# Asking for Av1an workers
     	worker_string=$(worker_text)
     	echo -e "$worker_string"
     	workers=$(worker_select)
     	echo -e "${GREY}>${RESET} ${AV1RED}$workers${RESET}\n"
     	
+		# Finally, asking if the user is ready to encoder
     	echo -e "${BOLD}Ready to encode?${RESET}"
     	encode_start=$(encode_start_select)
 		echo -e "${GREY}>${RESET} ${AV1RED}$encode_start${RESET}\n"
+
     	case $encode_start in
     		"Yes")
+
+				# Spin the spinner to pretend something is happening
 				gum spin sleep 1.3 --spinner.foreground="161" --spinner line --show-output --title "Generating script..."
+
+				# Spin the spinner to show that we're generating a hash for the input file which will be used to make a temp dir & name the output script
     			RAND=$(gum spin md5sum $INFILE --spinner.foreground="161" --spinner line --show-output --title "Hashing input file..." | head -c 6)
-    			echo -e "ulimit -n 200000 && av1an -i \"$INFILE\" --verbose --temp \"rAV1ator-CLI_temp${RAND}\" --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" > "rAV1ator-CLI_job${RAND}.sh"
+
+				# Echo the generated script to a .sh file
+    			echo -e "ulimit -n 200000 && av1an -i \"$INFILE\" --verbose --temp \"rAV1ator-CLI_temp${RAND}\" --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" -a \"$audioopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" > "rAV1ator-CLI_job${RAND}.sh"
+
+				# Handle history output to `.rav1ator-cli-history` text file
 				echo "-------" >> ~/.rav1ator-cli-history
 				echo $(date) >> ~/.rav1ator-cli-history
-				echo -e "ulimit -n 200000 && av1an -i \"$INFILE\" --verbose --temp \"rAV1ator-CLI_temp${RAND}\" --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" >> ~/.rav1ator-cli-history
+				echo -e "ulimit -n 200000 && av1an -i \"$INFILE\" --verbose --temp \"rAV1ator-CLI_temp${RAND}\" --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" -a \"$audioopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" >> ~/.rav1ator-cli-history
+				
+				# Mark script as executable
 				chmod +x "rAV1ator-CLI_job${RAND}.sh"
+
+				# Spin the spinner again for dramatic effect
     			gum spin --spinner.foreground="161" --spinner line --title "Executing rAV1ator-CLI_job${RAND}.sh..." -- sleep 0.3
+
+				# Execute generated Av1an script to begin encoding
     			./"rAV1ator-CLI_job${RAND}.sh"
+
+				# Once it is done or the user cancels, it will show this message & remove the generated script
     			echo -e "${BOLD}Encoding Finished!${RESET} Thanks for checking out ${BOLD}rAV1ator${RESET}${GREY}:${RESET} ${AV1RED}${BOLD}CLI${RESET} ${BOLD}Edition${RESET}${GREY}${BLINK}${BOLD}!${RESET}"
     			rm "rAV1ator-CLI_job${RAND}.sh"
 				;;
     		"No")
+
+				# Inform the user they've aborted. Sad :(
     			echo -e "${GREY}Encoding aborted.${RESET}"
     			;;
     		"Resume")
+
+				# Spin the spinner to pretend something is happening
 				gum spin sleep 1.3 --spinner.foreground="161" --spinner line --show-output --title "Generating script..."
+
+				# Spin the spinner to show that we're generating a hash for the input file which will be used to make a temp dir & name the output script
     			RAND=$(gum spin md5sum $INFILE --spinner.foreground="161" --spinner line --show-output --title "Hashing input file..." | head -c 6)
-    			echo -e "ulimit -n 200000 && av1an -i \"$INFILE\" --verbose --resume --temp \"rAV1ator-CLI_temp${RAND}\" --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" > "rAV1ator-CLI_job${RAND}.sh"
-    			echo "-------" >> ~/.rav1ator-cli-history
+
+				# The only difference between "Yes" and "Resume" is that this one has a resume flag. I don't think this should be the default
+    			echo -e "ulimit -n 200000 && av1an -i \"$INFILE\" --verbose --resume --temp \"rAV1ator-CLI_temp${RAND}\" --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" -a \"$audioopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" > "rAV1ator-CLI_job${RAND}.sh"
+    			
+				# Handle history output to `.rav1ator-cli-history` text file
+				echo "-------" >> ~/.rav1ator-cli-history
 				echo $(date) >> ~/.rav1ator-cli-history
-				echo -e "ulimit -n 200000 && av1an -i \"$INFILE\" --verbose --resume --temp \"rAV1ator-CLI_temp${RAND}\" --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" >> ~/.rav1ator-cli-history
+				echo -e "ulimit -n 200000 && av1an -i \"$INFILE\" --verbose --resume --temp \"rAV1ator-CLI_temp${RAND}\" --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" -a \"$audioopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" >> ~/.rav1ator-cli-history
+				
+				# Mark script as executable
 				chmod +x "rAV1ator-CLI_job${RAND}.sh"
-    			gum spin --spinner.foreground="161" --spinner line --title "Executing rAV1ator-CLI_job${RAND}.sh..." -- sleep 0.3
-    			./"rAV1ator-CLI_job${RAND}.sh"
+    			
+				# Spin the spinner again for dramatic effect
+				gum spin --spinner.foreground="161" --spinner line --title "Executing rAV1ator-CLI_job${RAND}.sh..." -- sleep 0.3
+    			
+				# Execute generated Av1an script with resume to begin/resume encoding
+				./"rAV1ator-CLI_job${RAND}.sh"
+
+				# Once it is done or the user cancels, it will show this message & remove the generated script
     			echo -e "${BOLD}Encoding Finished!${RESET} Thanks for checking out ${BOLD}rAV1ator${RESET}${GREY}:${RESET} ${AV1RED}${BOLD}CLI${RESET} ${BOLD}Edition${RESET}${GREY}${BLINK}${BOLD}!${RESET}"
     			rm "rAV1ator-CLI_job${RAND}.sh"
 				;;
 			"Print")
+
+				# Spin the spinner to pretend something is happening
 				gum spin sleep 1.2 --spinner.foreground="161" --spinner line --show-output --title "Generating script..."
-				echo -e "${GREY}Generated script${RESET}${AV1RED}:${RESET} av1an -i \"$INFILE\" --verbose --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\""
+
+				# Print the Av1an command to the terminal
+				echo -e "${GREY}Generated script${RESET}${AV1RED}:${RESET} av1an -i \"$INFILE\" --verbose --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" -a \"$audioopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\""
+				
+				# Handle history output to `.rav1ator-cli-history` text file
+				echo "-------" >> ~/.rav1ator-cli-history
+				echo $(date) >> ~/.rav1ator-cli-history
+				echo -e "av1an -i \"$INFILE\" --verbose --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" -a \"$audioopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" >> ~/.rav1ator-cli-history
+				
+				# Inform the user that the printed output is also in their history
+				echo -e "${GREY}Printed script added to history.${RESET}"
     	esac
+
+# Set done equal to 1 so that we can exit the while loop
 done=1
+
 done
