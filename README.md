@@ -1,9 +1,9 @@
 # rAV1ator CLI
-An easy-to-use CLI utility for working with Av1an, writtin in Bash.
+An easy-to-use CLI utility for working with Av1an, written in Bash.
 
 ```zsh
 ~ > rav1ator-cli -h
-rAV1ator: CLI Edition_ v0.1.0
+rAV1ator: CLI Edition_ v0.1.1
 
 Usage:
 	rav1ator-cli [input] [output] [--offline]
@@ -31,7 +31,7 @@ rAV1ator CLI Edition can:
 
 - Generate Av1an encoding commands with the user's chosen settings & run them to encode a provided input video to an MKV output.
 
-- Encode from scratch, or resume a previous rav1ator-cli encode
+- Encode from scratch, or resume a previous rAV1ator CLI encode
 
 - Engage with rich interactivity features like spinners, prompts, & dropdowns
 
@@ -41,7 +41,7 @@ Overall, it aims to provide an easy way to encode videos on the command line wit
 
 ## Installation
 
-Installing rav1ator-cli on its own is as simple as running the following two commands:
+Installing rAV1ator CLI on its own is as simple as running the following two commands:
 
 ```bash
 curl -sOJ https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli && chmod +x rav1ator-cli
