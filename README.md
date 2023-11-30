@@ -1,4 +1,4 @@
-# rav1ator-cli
+# rAV1ator CLI
 An easy-to-use CLI utility for working with Av1an, writtin in Bash.
 
 ```zsh
