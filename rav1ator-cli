@@ -24,7 +24,7 @@ INTRO_HELP3="If you're using ZSH, specifically with Oh My ZSH, you may only need
 rav1e_link="https://autumn.revolt.chat/attachments/download/Qn02SIpAKt1TJsnU0LK-TBlDCQZWAGGDJzurvsT7xl"
 x265_link="https://autumn.revolt.chat/attachments/download/lgk01Z-Ax5tmBZ2WUNXkbYEN4deAel3aKxNWzD_E2O"
 x264_link="https://autumn.revolt.chat/attachments/download/WWeUuEWViblcvNAQRCmrV23ccCe2MJSoZtOmGdy5hQ"
-svt_link="https://autumn.revolt.chat/attachments/download/jSawgAFXx62YCk06m0zEucbK45KijUzT4HPMuX6JUu"
+svt_link="https://autumn.revolt.chat/attachments/download/14l3B8MkdSLeb1pp7vS7u8oPh464hu_T4c-cCtHj3B"
 aom_link="https://autumn.revolt.chat/attachments/download/UEu7LnYIDgwiTkt-8uv2AzP_ei2NEu15JxuytCxSZk"
 
 
@@ -77,7 +77,7 @@ elif [[ "$*" == "-f" || "$*" == "--full-history" ]]; then
 
 # If the user passes a binary installation flag, prompt to install binaries
 elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
-	echo -e "Binaries last updated by rav1ator-cli on ${BOLD}8 Nov 2023${RESET}"
+	echo -e "Binaries last updated by rav1ator-cli on ${BOLD}12 Dec 2023${RESET}"
 	manualInstall=$(encoders_install)
 	case $manualInstall in
 		"Yes")
@@ -115,7 +115,7 @@ elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
 				echo -e "${GREY}Bad binary integrity detected:${RESET} x264"
 				echo -e "${GREY}Please contact the maintainer of rav1ator-cli.${RESET}"
 				exit 1
-			elif [ "$svt_sum" != "af75eee69583e42aa0c34daa25743567c6ac1be355d4f638d4d3b9e3dfe76d11" ]; then
+			elif [ "$svt_sum" != "550d086dd8b8c1c2bcc97f42ddc884c21a11f20c135fa52ec10333eadbdb7002" ]; then
 				echo -e "${GREY}Bad binary integrity detected:${RESET} SvtAv1EncApp"
 				echo -e "${GREY}Please contact the maintainer of rav1ator-cli.${RESET}"
 				exit 1
@@ -535,7 +535,7 @@ while [[ $done -eq 0 ]] ; do
 	
 	# Prompt users to install encoder binaries with simple instructions
 	echo -e "If you'd like to install encoder binaries, please run ${BOLD}rav1ator-cli -b${RESET}"
-	echo -e "${GREY}Binaries last updated on ${BOLD}8 Nov 2023${RESET}\n"
+	echo -e "${GREY}Binaries last updated on ${BOLD}12 Dec 2023${RESET}\n"
 	
 	# What encoder does the user want to use? They can select
 	echo "Which encoder would you like to select?"
