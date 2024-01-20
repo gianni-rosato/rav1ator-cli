@@ -308,10 +308,10 @@ param_select () {
 					str="--good --bit-depth=10 --end-usage=q --threads=2 --tune=ssim --ssim-rd-mult=125 --tune-content=psy --arnr-maxframes=15 --arnr-strength=2 --enable-cdef=0 --loopfilter-control=3 --quant-sharpness=3 --deltaq-mode=1 --aq-mode=0 --enable-keyframe-filtering=1 --luma-bias=25 --luma-bias-strength=15 --luma-bias-midpoint=66 --enable-qm=1 --quant-b-adapt=1 --lag-in-frames=48 --sb-size=dynamic --disable-kf --kf-max-dist=9999 --cpu-used=$speed --cq-level=$crf --denoise-noise-level=$grain --enable-dnl-denoising=0"
 					;;
 				"SVT-AV1")
-					str="--input-depth 10 --tune 2 --enable-tf 0 --enable-qm 1 --qm-min 0 --qm-max 15 --keyint -1 --scd 0 --lp 1 --irefresh-type 2 --crf "$crf" --preset "$speed" --film-grain "$grain" --film-grain-denoise 0"
+					str="--input-depth 10 --tune 2 --enable-tf 0 --enable-qm 1 --qm-min 0 --qm-max 15 --keyint -1 --scd 0 --lp 2 --irefresh-type 2 --crf "$crf" --preset "$speed" --film-grain "$grain" --film-grain-denoise 0"
 					;;
 				"rav1e")
-					str="--tiles 8 --threads 2 --no-scene-detection -s "$speed" --quantizer "$crf" --photon-noise "$grain""
+					str="--tiles 8 --threads 2 --no-scene-detection --keyint 0 -s "$speed" --quantizer "$crf" --photon-noise "$grain""
 					;;
 			esac
 			;;
@@ -321,10 +321,10 @@ param_select () {
 					str="--good --bit-depth=10 --end-usage=q --threads=2 --tune=ssim --ssim-rd-mult=125 --tune-content=psy --arnr-maxframes=15 --arnr-strength=2 --enable-cdef=0 --loopfilter-control=3 --quant-sharpness=3 --deltaq-mode=6 --aq-mode=0 --enable-keyframe-filtering=1 --luma-bias=36 --luma-bias-strength=16 --luma-bias-midpoint=60 --enable-qm=1 --quant-b-adapt=1 --lag-in-frames=48 --sb-size=dynamic --disable-kf --kf-max-dist=9999 --cpu-used=$speed --cq-level=$crf --denoise-noise-level=$grain --enable-dnl-denoising=0 --color-primaries=bt2020 --transfer-characteristics=smpte2084 --matrix-coefficients=bt2020ncl"
 					;;
 				"SVT-AV1")
-					str="--input-depth 10 --tune 2 --enable-tf 0 --enable-qm 1 --qm-min 0 --qm-max 15 --keyint -1 --scd 0 --lp 1 --irefresh-type 2 --crf "$crf" --preset "$speed" --film-grain "$grain" --film-grain-denoise 0 --color-primaries 9 --transfer-characteristics 16 --matrix-coefficients 9"
+					str="--input-depth 10 --tune 2 --enable-tf 0 --enable-qm 1 --qm-min 0 --qm-max 15 --keyint -1 --scd 0 --lp 2 --irefresh-type 2 --crf "$crf" --preset "$speed" --film-grain "$grain" --film-grain-denoise 0 --color-primaries 9 --transfer-characteristics 16 --matrix-coefficients 9"
 					;;
 				"rav1e")
-					str="--tiles 8 --threads 2 --no-scene-detection -s "$speed" --quantizer "$crf" --photon-noise "$grain" --primaries BT2020 --transfer SMPTE2084 --matrix BT2020NCL"
+					str="--tiles 8 --threads 2 --no-scene-detection --keyint 0 -s "$speed" --quantizer "$crf" --photon-noise "$grain" --primaries BT2020 --transfer SMPTE2084 --matrix BT2020NCL"
 					;;
 			esac
 			;;
