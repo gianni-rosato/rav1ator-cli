@@ -3,7 +3,7 @@ An easy-to-use CLI utility for working with Av1an, written in Bash.
 
 ```zsh
 ~ > rav1ator-cli -h
-rAV1ator: CLI Edition_ v0.1.1
+rAV1ator: CLI Edition_ v0.2.0
 
 Usage:
 	rav1ator-cli [input] [output] [--offline]
@@ -12,11 +12,12 @@ Dependencies (Arch):
 	rust ffmpeg python mkvtoolnix-cli vapoursynth gum numactl l-smash vapoursynth-plugin-lsmashsource av1an ffms2
 
 Options: (Currently, only one option is useful at a time)
-	-h, --help		Print this help section
+	-h, --help			Print this help section
 	-l, --last-used		Print last used encode settings from history
 	-f, --full-history	Print full history from ".rav1ator-cli-history" file
 	-b, --binaries		Just install binaries, then exit
 	-x, --offline		Don't check for updates.
+	-a, --batch			Batch encode. All video files in a directory specified after this flag are encoded.
 ```
 
 rAV1ator CLI Edition can:
@@ -25,7 +26,9 @@ rAV1ator CLI Edition can:
 
 - Download AVX2-optimized encoder binaries compiled with `-O3 -flto` in most cases & allow the user to install them with detailed instructions
 
-- Remember encoding history and let you view your whole history or parts of it
+- Remember encoding history and let you view your whole history or your most recent command
+
+- Allow you to encode an entire directory of video files with the same settings
 
 - Encode with x264, x265, aomenc, SVT-AV1, or rav1e, set a speed preset, CRF/quality value, FFmpeg parameters, and encoder parameters
 
@@ -48,12 +51,14 @@ curl -sOJ https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1
 sudo cp rav1ator-cli /usr/local/bin
 ```
 
+rAV1ator CLI will not work properly if not installed in `/usr/local/bin`.
+
 After it is properly installed, it will update itself in the future when updates become available.
 
 Dependencies can be installed on Arch by running the following command:
 
 ```bash
-yay -Sy rust ffmpeg python mkvtoolnix-cli vapoursynth gum l-smash vapoursynth-plugin-lsmashsource av1an ffms2
+yay -Syu openssl ffmpeg python mkvtoolnix-cli vapoursynth gum l-smash vapoursynth-plugin-lsmashsource av1an ffms2
 ```
 
 ### Demos
