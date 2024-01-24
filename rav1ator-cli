@@ -16,12 +16,11 @@ RESET="\033[0m"
 
 # Help strings
 INTRO_HELP1="Binaries will be found in a folder called \"rav1ator_cli_encoders\" in your Home directory. Please copy these to your /usr/local/bin folder, which allows you to use Linux programs from anywhere on your computer in the terminal. You can do that by entering the command below."
-INTRO_HELPX="Additionally, you may need to install Av1an, zstd, mkvtoolnix-cli, vapoursynth-plugin-lsmashsource, ffmpeg, and other necessary utilities from your package manager before using rav1ator-cli."
 INTRO_HELP2="sudo cp ~/rav1ator_cli_encoders/* /usr/local/bin"
 INTRO_HELP3="If you're using ZSH, specifically with Oh My ZSH, you may only need to uncomment the second line by removing the \"#\" in front of it in your .zshrc file. You can edit this file by running \"nano ~/.zshrc\""
 
 # Binary links for the pre-built binaries. Using Revolt's CDN
-rav1e_link="https://autumn.revolt.chat/attachments/download/Qn02SIpAKt1TJsnU0LK-TBlDCQZWAGGDJzurvsT7xl"
+rav1e_link="https://autumn.revolt.chat/attachments/download/7S3LEh4pvZtWiyNmiz9zNkGWd4f_eulMOd6kYDwz4q"
 x265_link="https://autumn.revolt.chat/attachments/download/lgk01Z-Ax5tmBZ2WUNXkbYEN4deAel3aKxNWzD_E2O"
 x264_link="https://autumn.revolt.chat/attachments/download/WWeUuEWViblcvNAQRCmrV23ccCe2MJSoZtOmGdy5hQ"
 svt_link="https://autumn.revolt.chat/attachments/download/sD7oP_rp4FK3COsWgMVeKJnOkB-KrLiZSFQq8bPPVO"
@@ -30,8 +29,8 @@ aom_link="https://autumn.revolt.chat/attachments/download/UEu7LnYIDgwiTkt-8uv2Az
 
 # Every time there's a significant user-facing update, this will change & is checked against rav1ator-cli.md5 (which is pulled from the git repo). to generate rav1ator-cli.md5, just `rm rav1ator-cli.md5 && md5sum rav1ator-cli | awk '{print $1}' >> rav1ator-cli.md5`.
 script_md5=$(md5sum /usr/local/bin/rav1ator-cli | awk '{print $1}')
-version="0.2.0"
-bin_latest_date="14 Jan 2024"
+version="0.2.1"
+bin_latest_date="23 Jan 2024"
 
 # Check where the script is located
 bin_loc=$(which rav1ator-cli)
@@ -43,8 +42,14 @@ catrom="bicubic:param0=0:param1=1/2"
 is_batch_encode=0
 
 # Binary installation prompt if the user passes -b
+encoders_download () {
+	str=$(gum confirm "Download relevant encoder binaries?" --selected.background="161" --selected.foreground="15" --unselected.foreground="248" && echo "Yes" || echo "No")
+	echo "$str"
+}
+
+# Return "Yes" to install the encoders to /usr/local/bin if the user confirms
 encoders_install () {
-	str=$(gum confirm "Install relevant encoder binaries?" --selected.background="161" --selected.foreground="15" --unselected.foreground="248" && echo "Yes" || echo "No")
+	str=$(gum confirm "Install binaries to /usr/local/bin?" --selected.background="161" --selected.foreground="15" --unselected.foreground="248" && echo "Yes" || echo "No")
 	echo "$str"
 }
 
@@ -84,7 +89,7 @@ elif [[ "$*" == "-f" || "$*" == "--full-history" ]]; then
 # If the user passes a binary installation flag, prompt to install binaries
 elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
 	echo -e "Binaries last updated by rav1ator-cli on ${BOLD}$bin_latest_date${RESET}"
-	manualInstall=$(encoders_install)
+	manualInstall=$(encoders_download)
 	case $manualInstall in
 		"Yes")
 			# Clean up old binary directory & make a new one
@@ -107,46 +112,55 @@ elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
 			aom_sum=$(cd ~/rav1ator_cli_encoders ; sha256sum aomenc | awk '{print $1}' | tr -dc "abcdefg1234567890")
 			
 			# If the hash is wrong, exit the tool & inform the user
-			if [ "$rav1e_sum" != "6c12d77d91b05a2321acae4bc3d9f1d3c7fe532014de6fb4cb623a7f2d75708a" ]; then
-				echo -e "$rav1e_sum"
-				echo -e "$rav1e_sha256"
+			if [ "$rav1e_sum" != "51da17ab528c13ea3b97f765e85965f97048308ccd8012e55a61e2ada38527d6" ]; then
 				echo -e "${GREY}Bad binary integrity detected:${RESET} rav1e"
-				echo -e "${GREY}Please contact the maintainer of rav1ator-cli.${RESET}"
+				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
 				exit 1
 			elif [ "$x265_sum" != "e857e5c8b803de4849e0d75535ef5441008d6360327b7ff67d0e9295195a11e0" ]; then
 				echo -e "${GREY}Bad binary integrity detected:${RESET} x265"
-				echo -e "${GREY}Please contact the maintainer of rav1ator-cli.${RESET}"
+				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
 				exit 1
 			elif [ "$x264_sum" != "47a872f6485b5b925627c038946646db7a5b105d71c5a34869009b3a38da38d1" ]; then
 				echo -e "${GREY}Bad binary integrity detected:${RESET} x264"
-				echo -e "${GREY}Please contact the maintainer of rav1ator-cli.${RESET}"
+				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
 				exit 1
 			elif [ "$svt_sum" != "41df0f30d41b7e8341c52af32e062a3da55437d882abe810955a3b66feae3360" ]; then
 				echo -e "${GREY}Bad binary integrity detected:${RESET} SvtAv1EncApp"
-				echo -e "${GREY}Please contact the maintainer of rav1ator-cli.${RESET}"
+				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
 				exit 1
 			elif [ "$aom_sum" != "a8955f68ef94f05d263aa1be781225d61b68784a6de35a324bd7437d7aa84160" ]; then
 				echo -e "${GREY}Bad binary integrity detected:${RESET} aomenc"
-				echo -e "${GREY}Please contact the maintainer of rav1ator-cli.${RESET}"
+				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
 				exit 1
 			fi
 			
 			# Make binaries executable
 			chmod +x ~/rav1ator_cli_encoders/*
 			
-			# Print help flags from the intro
-			gum style --foreground 15 --border-foreground 248 --border double --align center --width 74 --margin "0 1" --align="left" --padding "0 1" "$INTRO_HELP1"
-			sleep 0.1
-			gum style --foreground 15 --border-foreground 161 --border double --align center --width 74 --margin "0 1" --align="left" --padding "0 1" "$INTRO_HELP2"
-			sleep 0.1
-			gum style --foreground 15 --border-foreground 248 --border double --align center --width 74 --margin "0 1" --padding "0 1" "$INTRO_HELPX"
-			sleep 0.1
-			gum style --italic --foreground 248 --border-foreground 248 --border double --align center --width 74 --margin "0 1" --padding "1 1" "$INTRO_HELP3"
-			sleep 0.1
-			echo -ne "${GREY}Binaries require an AVX2-capable CPU (Haswell or newer) and are highly optimized, so they will almost certainly be faster (and likely also newer) than the default options offered by your package manager. "
-			sleep 0.3
-			echo -e "\e]8;;https://wiki.x266.mov/blog/av1-encoding-for-dummies/#arch\e\\Link for More Info\e]8;;\e\\"
-			exit 1
+			# Ask to install to /usr/local/bin
+			copyToUsrLocalBin=$(encoders_install)
+
+			case $copyToUsrLocalBin in
+				"Yes")
+					echo -e "${GREY}Prompting for permission to copy encoder binaries:${RESET}"
+					sudo cp ~/rav1ator_cli_encoders/* /usr/local/bin
+					echo -e "${GREY}Given you did not abort and /usr/local/bin is in your PATH, binaries should be successfully installed.${RESET}"
+					rm -rf ~/rav1ator_cli_encoders
+					exit 1
+					;;
+				"No")
+					gum style --foreground 15 --border-foreground 248 --border double --align center --width 74 --margin "0 1" --align="left" --padding "0 1" "$INTRO_HELP1"
+					sleep 0.1
+					gum style --foreground 15 --border-foreground 161 --border double --align center --width 74 --margin "0 1" --align="left" --padding "0 1" "$INTRO_HELP2"
+					sleep 0.1
+					gum style --italic --foreground 248 --border-foreground 248 --border double --align center --width 74 --margin "0 1" --padding "1 1" "$INTRO_HELP3"
+					sleep 0.1
+					echo -ne "${GREY}Binaries require an AVX2-capable CPU (Haswell or newer) and are highly optimized, so they will almost certainly be faster (and likely also newer) than the default options offered by your package manager. "
+					sleep 0.3
+					echo -e "\e]8;;https://wiki.x266.mov/blog/av1-encoding-for-dummies/#arch\e\\Link for More Info\e]8;;\e\\"
+					exit 1
+					;;
+			esac
 			;;
 		"No")
 
@@ -158,7 +172,7 @@ elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
 
 # If offline, set the script's MD5 hash to "DEBUG" to bypass update check
 elif [[ "$*" == "-v" || "$*" == "--version" ]]; then
-	echo -e "${BOLD}rAV1ator${RESET}${GREY}:${RESET} ${AV1RED}${BOLD}CLI${RESET} ${BOLD}Edition${RESET}${GREY}${BLINK}${BOLD}_${RESET}	${GREY}v$version${RESET}"
+	echo -e "${BOLD}rAV1ator${RESET}${GREY}:${RESET} ${AV1RED}${BOLD}CLI${RESET} ${BOLD}Edition${RESET}${GREY}${BLINK}${BOLD}_${RESET}	v$version"
 	echo -e "${GREY}Script MD5 Hash:${RESET}	$script_md5" # REMEMBER: this is your /usr/local/bin rvcli, NOT the script you're working on
 	echo -e "${GREY}Binaries updated:${RESET}	$bin_latest_date"
 	echo -e "${GREY}Made with${RESET} ${AV1RED}${BLINK}<3${RESET} ${GREY}by:${RESET}	Gianni Rosato"
