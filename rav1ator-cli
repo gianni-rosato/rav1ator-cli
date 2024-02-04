@@ -125,15 +125,15 @@ elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
 			cd ~/rav1ator_cli_encoders || return; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder x264..." -- curl -OJ "$x264_link"
 			cd ~/rav1ator_cli_encoders || return; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder x265..." -- curl -OJ "$x265_link"
 			gum spin --spinner.foreground="161" --spinner line --title "Decompressing binary archives..." -- zstd -d ~/rav1ator_cli_encoders/*.zst && rm ~/rav1ator_cli_encoders/*.zst
-			
+
 			# Check the SHA256 hash of each binary to make sure they are correct
 			rav1e_sum=$(sha256sum ~/rav1ator_cli_encoders/rav1e | awk '{print $1}' | tr -dc "abcdefg1234567890")
 			x265_sum=$(sha256sum ~/rav1ator_cli_encoders/x265 | awk '{print $1}' | tr -dc "abcdefg1234567890")
 			x264_sum=$(sha256sum ~/rav1ator_cli_encoders/x264 | awk '{print $1}' | tr -dc "abcdefg1234567890")
 			svt_sum=$(sha256sum ~/rav1ator_cli_encoders/SvtAv1EncApp | awk '{print $1}' | tr -dc "abcdefg1234567890")
 			aom_sum=$(sha256sum ~/rav1ator_cli_encoders/aomenc | awk '{print $1}' | tr -dc "abcdefg1234567890")
-			legal_sum=$(sha256sum ~/rav1ator_cli_encoders/legal.tar | awk '{print $1}' | tr -dc "abcdefg1234567890") 
-			
+			legal_sum=$(sha256sum ~/rav1ator_cli_encoders/legal.tar | awk '{print $1}' | tr -dc "abcdefg1234567890")
+
 			# If the hash is wrong, exit the tool & inform the user
 			if [ "$rav1e_sum" != "51da17ab528c13ea3b97f765e85965f97048308ccd8012e55a61e2ada38527d6" ]; then
 				echo -e "${GREY}Bad binary integrity detected:${RESET} rav1e"
@@ -164,10 +164,10 @@ elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
 			# Extract legal tar and remove archive
 			tar -xf legal.tar
 			rm -f ~/rav1ator_cli_encoders/*.tar
-			
+
 			# Make binaries executable
 			chmod +x ~/rav1ator_cli_encoders/*
-			
+
 			# Ask to install to /usr/local/bin
 			copyToUsrLocalBin=$(encoders_install)
 
@@ -251,7 +251,7 @@ encoder_select () {
 # Inform the user & allow them to select a speed preset for their encoder of choice
 cpu_used_select_text () {
 	case $encoder in
-		"x264") 
+		"x264")
 			str="Speed trades time for encoding efficiency. \nOptions are ultrafast, superfast, veryfast, faster, fast, medium, slow, ${ULINE}slower${RESET}, ${ULINE}veryslow${RESET}, or placebo. \nRecommended options are underlined."
 			;;
 		"x265")
@@ -273,7 +273,7 @@ cpu_used_select_text () {
 # Prompt for user input to select speed
 cpu_used_select () {
 	case $encoder in
-		"x264") 
+		"x264")
 			str=$(gum input --cursor.foreground="161" --prompt.foreground="248" --width 9 --placeholder "Speed")
 			;;
 		"x265")
@@ -295,7 +295,7 @@ cpu_used_select () {
 # CRF selection text
 crf_used_select_text () {
 	case $encoder in
-		"x264") 
+		"x264")
 			str="CRF trades file size for quality.\nLower numbers produce larger, higher-quality files.\nType a number from 1 to 51. We'd recommend ${ULINE}17${RESET} to start."
 			;;
 		"x265")
@@ -317,7 +317,7 @@ crf_used_select_text () {
 # The actual user input to set CRF
 crf_used_select () {
 	case $encoder in
-		"x264") 
+		"x264")
 			str=$(gum input --cursor.foreground="161" --prompt.foreground="248" --width 4 --placeholder "CRF")
 			;;
 		"x265")
@@ -357,7 +357,7 @@ param_select () {
 			;;
 		"Default")
 			case $encoder in
-				"x264") 
+				"x264")
 					str="--threads 2 --open-gop --no-mbtree --aq-mode 3 --preset "$speed" --crf "$crf""
 					;;
 				"x265")
@@ -393,7 +393,7 @@ param_select () {
 					str="--good --bit-depth=10 --end-usage=q --threads=2 --tune=ssim --tune-content=psy --arnr-maxframes=15 --arnr-strength=2 --enable-cdef=0 --loopfilter-control=1 --quant-sharpness=0 --deltaq-mode=1 --enable-chroma-deltaq=1 --aq-mode=0 --enable-keyframe-filtering=1 --luma-bias=0 --enable-qm=1 --lag-in-frames=48 --sb-size=dynamic --disable-kf --kf-max-dist=9999 --dist-metric=qm-psnr --quant-b-adapt=1 --qm-min=0 --qm-max=8 --min-q=1 --cpu-used=$speed --cq-level=$crf --denoise-noise-level=$grain --enable-dnl-denoising=0"
 					;;
 				"SVT-AV1")
-					str="--tune 2 --enable-tf 0 --keyint -1 --lp 2 --irefresh-type 2 --enable-cdef 0 --crf "$crf" --preset "$speed" --film-grain "$grain""
+					str="--tune 2 --enable-tf 0 --keyint -1 --lp 2 --irefresh-type 2 --crf "$crf" --preset "$speed" --film-grain "$grain""
 					;;
 			esac
 			;;
@@ -583,16 +583,16 @@ done=0 # set done to 0
 while [[ $done -eq 0 ]] ; do
 	# Pretty header
 	echo -n -e "${BOLD}rAV1ator${RESET}${GREY}:${RESET} ${AV1RED}${BOLD}CLI${RESET} ${BOLD}Edition${RESET}${GREY}${BLINK}${BOLD}_${RESET}"
-	
+
 	# Check if gum is installed, because gum is very important to this program
 	isGumInstalled=$(which gum 2>&1 | awk '{print $2}' 2>&1)
-	
+
 	# If gum isn't installed inform the user and abort
 	if [ "$isGumInstalled" == "no" ]; then
 		echo -e "${GREY}Please install${RESET} gum ${GREY}from your package manager to get started.${RESET}"
 		exit 1
 	fi
-	
+
 	# If rav1ator-cli isn't in /usr/local/bin, admonish the user
 	if [ "$bin_loc" != "/usr/local/bin/rav1ator-cli" ]; then
 		echo -e "${GREY}Please install${RESET} rav1ator-cli ${GREY}to your /usr/local/bin to started.${RESET}"
@@ -614,16 +614,16 @@ while [[ $done -eq 0 ]] ; do
 	else
 		echo -e "\n"
 	fi
-	
+
 	# Prompt users to install encoder binaries with simple instructions
 	echo -e "If you'd like to install encoder binaries, please run ${BOLD}rav1ator-cli -b${RESET}"
 	echo -e "${GREY}Binaries last updated on ${BOLD}$bin_latest_date${RESET}\n"
-	
+
 	# What encoder does the user want to use? They can select
 	echo "Which encoder would you like to select?"
 	encoder=$(encoder_select)
 	case $encoder in
-		"x264") 
+		"x264")
 			encoder_av1an="x264"
 			;;
 		"x265")
@@ -643,13 +643,13 @@ while [[ $done -eq 0 ]] ; do
 			;;
 	esac
     	echo -e "${GREY}>${RESET} ${AV1RED}$encoder${RESET}\n"
-    	
+
 		# Speed the user set gets assigned to "speed" variable
     	speed_string=$(cpu_used_select_text)
     	echo -e "$speed_string"
     	speed=$(cpu_used_select)
     	echo -e "${GREY}>${RESET} ${AV1RED}$speed${RESET}\n"
-    	
+
 		# CRF input valuee is assigned to "crf" variable
     	crf_string=$(crf_used_select_text)
     	echo -e "$crf_string"
@@ -675,7 +675,7 @@ while [[ $done -eq 0 ]] ; do
     	echo -e "$paramtext"
     	params="$(param_select)"
     	echo -e "${GREY}>${RESET} ${AV1RED}\"$params\"${RESET}\n"
-    	
+
 		# Asking for FFmpeg parameters
     	ffmpegtext=$(ffmpeg_text)
     	echo -e "$ffmpegtext"
@@ -688,7 +688,7 @@ while [[ $done -eq 0 ]] ; do
 		else
 			sc_downscale_res="1080"
 		fi
-    	
+
 		# Asking for audio parameters
     	audiotext=$(audio_text)
     	echo -e "$audiotext"
@@ -700,7 +700,7 @@ while [[ $done -eq 0 ]] ; do
     	echo -e "$worker_string"
     	workers=$(worker_select)
     	echo -e "${GREY}>${RESET} ${AV1RED}$workers${RESET}\n"
-    	
+
 		# Finally, asking if the user is ready to encoder
     	echo -e "${BOLD}Ready to encode?${RESET}"
     	encode_start=$(encode_start_select)
@@ -722,7 +722,7 @@ while [[ $done -eq 0 ]] ; do
 				echo "-------" >> ~/.rav1ator-cli-history
 				echo $(date) >> ~/.rav1ator-cli-history
 				echo -e "ulimit -n 200000 && av1an -i \"$INFILE\" --verbose --sc-pix-format=yuv420p --temp \"rAV1ator-CLI_temp${RAND}\" --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" -a \"$audioopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" >> ~/.rav1ator-cli-history
-				
+
 				# Mark script as executable
 				chmod +x "rAV1ator-CLI_job${RAND}.sh"
 
@@ -755,7 +755,7 @@ while [[ $done -eq 0 ]] ; do
 				echo "-------" >> ~/.rav1ator-cli-history
 				echo $(date) >> ~/.rav1ator-cli-history
 				echo -e "av1an -i \"genericInput.mkv\" --verbose --sc-pix-format=yuv420p --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" -a \"$audioopts\" --set-thread-affinity 2 -w $workers -o genericOutput.mkv" >> ~/.rav1ator-cli-history
-				
+
 				# Mark script as executable
 				chmod +x "rAV1ator-CLI_job${RAND}.sh"
 
@@ -787,13 +787,13 @@ while [[ $done -eq 0 ]] ; do
 				echo "-------" >> ~/.rav1ator-cli-history
 				echo $(date) >> ~/.rav1ator-cli-history
 				echo -e "ulimit -n 200000 && av1an -i \"$INFILE\" --verbose --sc-pix-format=yuv420p --resume --temp \"rAV1ator-CLI_temp${RAND}\" --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" -a \"$audioopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" >> ~/.rav1ator-cli-history
-				
+
 				# Mark script as executable
 				chmod +x "rAV1ator-CLI_job${RAND}.sh"
-    			
+
 				# Spin the spinner again for dramatic effect
 				gum spin --spinner.foreground="161" --spinner line --title "Executing rAV1ator-CLI_job${RAND}.sh..." -- sleep 0.3
-    			
+
 				# Execute generated Av1an script with resume to begin/resume encoding
 				./"rAV1ator-CLI_job${RAND}.sh"
 
@@ -806,12 +806,12 @@ while [[ $done -eq 0 ]] ; do
 
 				# Print the Av1an command to the terminal
 				echo -e "${GREY}Generated script${RESET}${AV1RED}:${RESET} av1an -i \"$INFILE\" --verbose --sc-pix-format=yuv420p --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" -a \"$audioopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\""
-				
+
 				# Handle history output to `.rav1ator-cli-history` text file
 				echo "-------" >> ~/.rav1ator-cli-history
 				echo $(date) >> ~/.rav1ator-cli-history
 				echo -e "av1an -i \"$INFILE\" --verbose --sc-pix-format=yuv420p --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" -a \"$audioopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" >> ~/.rav1ator-cli-history
-				
+
 				# Inform the user that the printed output is also in their history
 				echo -e "${GREY}Printed script added to history.${RESET}"
 				;;
@@ -826,7 +826,7 @@ while [[ $done -eq 0 ]] ; do
 				echo "-------" >> ~/.rav1ator-cli-history
 				echo $(date) >> ~/.rav1ator-cli-history
 				echo -e "av1an -i \"genericInput.mkv\" --verbose --sc-pix-format=yuv420p --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" -a \"$audioopts\" --set-thread-affinity 2 -w $workers -o \"genericOutput.mkv\"" >> ~/.rav1ator-cli-history
-				
+
 				# Inform the user that the printed output is also in their history
 				echo -e "${GREY}Printed script added to history. Please note this is a generic single-file script based on your specified settings that will not work on a folder/directory of videos.${RESET}"
 				;;
