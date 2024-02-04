@@ -20,12 +20,12 @@ INTRO_HELP2="sudo cp ~/rav1ator_cli_encoders/* /usr/local/bin"
 INTRO_HELP3="If you're using ZSH, specifically with Oh My ZSH, you may only need to uncomment the second line by removing the \"#\" in front of it in your .zshrc file. You can edit this file by running \"nano ~/.zshrc\""
 
 # Binary links for the pre-built binaries. From GitHub
-rav1e_link=""
-x265_link=""
-x264_link=""
-svt_link=""
-aom_link=""
-legal_link=""
+rav1e_link="https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/bin/rav1e.zst"
+x265_link="https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/bin/x265.zst"
+x264_link="https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/bin/x264.zst"
+svt_link="https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/bin/SvtAv1EncApp.zst"
+aom_link="https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/bin/aomenc.zst"
+legal_link="https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/bin/legal.tar.zst"
 
 
 # Every time there's a significant user-facing update, this will change & is checked against rav1ator-cli.md5 (which is pulled from the git repo). to generate rav1ator-cli.md5, just `rm rav1ator-cli.md5 && md5sum rav1ator-cli | awk '{print $1}' >> rav1ator-cli.md5`.
@@ -41,6 +41,12 @@ catrom="bicubic:param0=0:param1=1/2"
 
 # Is this a batch encode
 is_batch_encode=0
+
+# Check for updates by checking the script's hash against the latest hash in the git repo. Requires an internet connection.
+update_hash_check () {
+	str=$(curl -s https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli.md5)
+	echo "$str"
+}
 
 # Binary installation prompt if the user passes -b
 encoders_download () {
@@ -112,6 +118,7 @@ elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
 			mkdir ~/rav1ator_cli_encoders
 
 			# Download encoder binaries to the binary directory in the user's home dir
+			cd ~/rav1ator_cli_encoders || return; gum spin --spinner.foreground="161" --spinner line --title "Downloading legal information..." -- curl -OJ "$legal_link"
 			cd ~/rav1ator_cli_encoders || return; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder aom-av1-lavish..." -- curl -OJ "$aom_link"
 			cd ~/rav1ator_cli_encoders || return; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder SVT-AV1..." -- curl -OJ "$svt_link"
 			cd ~/rav1ator_cli_encoders || return; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder rav1e..." -- curl -OJ "$rav1e_link"
@@ -120,12 +127,12 @@ elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
 			gum spin --spinner.foreground="161" --spinner line --title "Decompressing binary archives..." -- zstd -d ~/rav1ator_cli_encoders/*.zst && rm ~/rav1ator_cli_encoders/*.zst
 			
 			# Check the SHA256 hash of each binary to make sure they are correct
-			rav1e_sum="$(cd ~/rav1ator_cli_encoders || return; sha256sum rav1e | awk '{print $1}' | tr -dc "abcdefg1234567890")"
-			x265_sum=$(cd ~/rav1ator_cli_encoders || return; sha256sum x265 | awk '{print $1}' | tr -dc "abcdefg1234567890")
-			x264_sum=$(cd ~/rav1ator_cli_encoders || return; sha256sum x264 | awk '{print $1}' | tr -dc "abcdefg1234567890")
-			svt_sum=$(cd ~/rav1ator_cli_encoders || return; sha256sum SvtAv1EncApp | awk '{print $1}' | tr -dc "abcdefg1234567890")
-			aom_sum=$(cd ~/rav1ator_cli_encoders || return; sha256sum aomenc | awk '{print $1}' | tr -dc "abcdefg1234567890")
-			legal_sum=$(cd ~/rav1ator_cli_encoders || return; sha256sum legal.tar | awk '{print $1}' | tr -dc "abcdefg1234567890")
+			rav1e_sum=$(sha256sum ~/rav1ator_cli_encoders/rav1e | awk '{print $1}' | tr -dc "abcdefg1234567890")
+			x265_sum=$(sha256sum ~/rav1ator_cli_encoders/x265 | awk '{print $1}' | tr -dc "abcdefg1234567890")
+			x264_sum=$(sha256sum ~/rav1ator_cli_encoders/x264 | awk '{print $1}' | tr -dc "abcdefg1234567890")
+			svt_sum=$(sha256sum ~/rav1ator_cli_encoders/SvtAv1EncApp | awk '{print $1}' | tr -dc "abcdefg1234567890")
+			aom_sum=$(sha256sum ~/rav1ator_cli_encoders/aomenc | awk '{print $1}' | tr -dc "abcdefg1234567890")
+			legal_sum=$(sha256sum ~/rav1ator_cli_encoders/legal.tar | awk '{print $1}' | tr -dc "abcdefg1234567890") 
 			
 			# If the hash is wrong, exit the tool & inform the user
 			if [ "$rav1e_sum" != "51da17ab528c13ea3b97f765e85965f97048308ccd8012e55a61e2ada38527d6" ]; then
@@ -153,6 +160,10 @@ elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
 				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
 				exit 1
 			fi
+
+			# Extract legal tar and remove archive
+			tar -xf legal.tar
+			rm -f ~/rav1ator_cli_encoders/*.tar
 			
 			# Make binaries executable
 			chmod +x ~/rav1ator_cli_encoders/*
@@ -229,12 +240,6 @@ elif [[ "$EXTENSION2" != "mkv" && is_batch_encode -eq 0 ]]; then
     echo -e "	Please make sure your output filename has the ${BOLD}.mkv${RESET} file extension."
     exit 1
 fi
-
-# Check for updates by checking the script's hash against the latest hash in the git repo. Requires an internet connection.
-update_hash_check () {
-	str=$(curl -s https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli.md5)
-	echo "$str"
-}
 
 # Encoder Selection
 encoder_select () {
@@ -339,9 +344,9 @@ param_text () {
 
 # Allow the user to select their parameters from a couple presets
 param_select () {
-	if [[ "$encoder" == "aomenc" ]]; then
+	if [[ "$encoder" == "aomenc" || "$encoder" == "SVT-AV1" ]]; then
 		yn=$(gum choose --limit=1 --cursor.foreground="161" --item.foreground="248" Default HDR10 Animation Custom)
-	elif [[ "$encoder" != "x264" && "$encoder" != "x265" ]]; then
+	elif [[ "$encoder" == "rav1e" ]]; then
 		yn=$(gum choose --limit=1 --cursor.foreground="161" --item.foreground="248" Default HDR10 Custom)
 	else
 		yn=$(gum choose --limit=1 --cursor.foreground="161" --item.foreground="248" Default Custom)
@@ -362,7 +367,7 @@ param_select () {
 					str="--good --bit-depth=10 --end-usage=q --threads=2 --tune=ssim --ssim-rd-mult=125 --tune-content=psy --arnr-maxframes=15 --arnr-strength=2 --enable-cdef=0 --loopfilter-control=3 --quant-sharpness=3 --deltaq-mode=1 --aq-mode=0 --enable-keyframe-filtering=1 --luma-bias=25 --luma-bias-strength=15 --luma-bias-midpoint=66 --enable-qm=1 --quant-b-adapt=1 --lag-in-frames=48 --sb-size=dynamic --disable-kf --kf-max-dist=9999 --cpu-used=$speed --cq-level=$crf --denoise-noise-level=$grain --enable-dnl-denoising=0"
 					;;
 				"SVT-AV1")
-					str="--input-depth 10 --tune 2 --enable-tf 0 --enable-qm 1 --qm-min 0 --qm-max 15 --keyint -1 --scd 0 --lp 2 --irefresh-type 2 --crf "$crf" --preset "$speed" --film-grain "$grain" --film-grain-denoise 0"
+					str="--tune 3 --keyint -1 --lp 2 --irefresh-type 2 --crf "$crf" --preset "$speed" --film-grain "$grain""
 					;;
 				"rav1e")
 					str="--tiles 8 --threads 2 --no-scene-detection --keyint 0 -s "$speed" --quantizer "$crf" --photon-noise "$grain""
@@ -375,7 +380,7 @@ param_select () {
 					str="--good --bit-depth=10 --end-usage=q --threads=2 --tune=ssim --ssim-rd-mult=125 --tune-content=psy --arnr-maxframes=15 --arnr-strength=2 --enable-cdef=0 --loopfilter-control=3 --quant-sharpness=3 --deltaq-mode=6 --aq-mode=0 --enable-keyframe-filtering=1 --luma-bias=36 --luma-bias-strength=16 --luma-bias-midpoint=60 --enable-qm=1 --quant-b-adapt=1 --lag-in-frames=48 --sb-size=dynamic --disable-kf --kf-max-dist=9999 --cpu-used=$speed --cq-level=$crf --denoise-noise-level=$grain --enable-dnl-denoising=0 --color-primaries=bt2020 --transfer-characteristics=smpte2084 --matrix-coefficients=bt2020ncl"
 					;;
 				"SVT-AV1")
-					str="--input-depth 10 --tune 2 --enable-tf 0 --enable-qm 1 --qm-min 0 --qm-max 15 --keyint -1 --scd 0 --lp 2 --irefresh-type 2 --crf "$crf" --preset "$speed" --film-grain "$grain" --film-grain-denoise 0 --color-primaries 9 --transfer-characteristics 16 --matrix-coefficients 9"
+					str="--tune 3 --enable-tf 0 --qm-max 15 --keyint -1 --lp 2 --irefresh-type 2 --crf "$crf" --preset "$speed" --film-grain "$grain" --color-primaries 9 --transfer-characteristics 16 --matrix-coefficients 9"
 					;;
 				"rav1e")
 					str="--tiles 8 --threads 2 --no-scene-detection --keyint 0 -s "$speed" --quantizer "$crf" --photon-noise "$grain" --primaries BT2020 --transfer SMPTE2084 --matrix BT2020NCL"
@@ -386,6 +391,9 @@ param_select () {
 			case $encoder in
 				"aomenc")
 					str="--good --bit-depth=10 --end-usage=q --threads=2 --tune=ssim --tune-content=psy --arnr-maxframes=15 --arnr-strength=2 --enable-cdef=0 --loopfilter-control=1 --quant-sharpness=0 --deltaq-mode=1 --enable-chroma-deltaq=1 --aq-mode=0 --enable-keyframe-filtering=1 --luma-bias=0 --enable-qm=1 --lag-in-frames=48 --sb-size=dynamic --disable-kf --kf-max-dist=9999 --dist-metric=qm-psnr --quant-b-adapt=1 --qm-min=0 --qm-max=8 --min-q=1 --cpu-used=$speed --cq-level=$crf --denoise-noise-level=$grain --enable-dnl-denoising=0"
+					;;
+				"SVT-AV1")
+					str="--tune 2 --enable-tf 0 --keyint -1 --lp 2 --irefresh-type 2 --enable-cdef 0 --crf "$crf" --preset "$speed" --film-grain "$grain""
 					;;
 			esac
 			;;
