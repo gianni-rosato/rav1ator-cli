@@ -25,6 +25,7 @@ x265_link=""
 x264_link=""
 svt_link=""
 aom_link=""
+legal_link=""
 
 
 # Every time there's a significant user-facing update, this will change & is checked against rav1ator-cli.md5 (which is pulled from the git repo). to generate rav1ator-cli.md5, just `rm rav1ator-cli.md5 && md5sum rav1ator-cli | awk '{print $1}' >> rav1ator-cli.md5`.
@@ -111,19 +112,20 @@ elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
 			mkdir ~/rav1ator_cli_encoders
 
 			# Download encoder binaries to the binary directory in the user's home dir
-			cd ~/rav1ator_cli_encoders ; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder aom-av1-lavish..." -- curl -OJ "$aom_link"
-			cd ~/rav1ator_cli_encoders ; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder SVT-AV1..." -- curl -OJ "$svt_link"
-			cd ~/rav1ator_cli_encoders ; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder rav1e..." -- curl -OJ "$rav1e_link"
-			cd ~/rav1ator_cli_encoders ; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder x264..." -- curl -OJ "$x264_link"
-			cd ~/rav1ator_cli_encoders ; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder x265..." -- curl -OJ "$x265_link"
+			cd ~/rav1ator_cli_encoders || return; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder aom-av1-lavish..." -- curl -OJ "$aom_link"
+			cd ~/rav1ator_cli_encoders || return; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder SVT-AV1..." -- curl -OJ "$svt_link"
+			cd ~/rav1ator_cli_encoders || return; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder rav1e..." -- curl -OJ "$rav1e_link"
+			cd ~/rav1ator_cli_encoders || return; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder x264..." -- curl -OJ "$x264_link"
+			cd ~/rav1ator_cli_encoders || return; gum spin --spinner.foreground="161" --spinner line --title "Downloading encoder x265..." -- curl -OJ "$x265_link"
 			gum spin --spinner.foreground="161" --spinner line --title "Decompressing binary archives..." -- zstd -d ~/rav1ator_cli_encoders/*.zst && rm ~/rav1ator_cli_encoders/*.zst
 			
 			# Check the SHA256 hash of each binary to make sure they are correct
-			rav1e_sum="$(cd ~/rav1ator_cli_encoders ; sha256sum rav1e | awk '{print $1}' | tr -dc "abcdefg1234567890")"
-			x265_sum=$(cd ~/rav1ator_cli_encoders ; sha256sum x265 | awk '{print $1}' | tr -dc "abcdefg1234567890")
-			x264_sum=$(cd ~/rav1ator_cli_encoders ; sha256sum x264 | awk '{print $1}' | tr -dc "abcdefg1234567890")
-			svt_sum=$(cd ~/rav1ator_cli_encoders ; sha256sum SvtAv1EncApp | awk '{print $1}' | tr -dc "abcdefg1234567890")
-			aom_sum=$(cd ~/rav1ator_cli_encoders ; sha256sum aomenc | awk '{print $1}' | tr -dc "abcdefg1234567890")
+			rav1e_sum="$(cd ~/rav1ator_cli_encoders || return; sha256sum rav1e | awk '{print $1}' | tr -dc "abcdefg1234567890")"
+			x265_sum=$(cd ~/rav1ator_cli_encoders || return; sha256sum x265 | awk '{print $1}' | tr -dc "abcdefg1234567890")
+			x264_sum=$(cd ~/rav1ator_cli_encoders || return; sha256sum x264 | awk '{print $1}' | tr -dc "abcdefg1234567890")
+			svt_sum=$(cd ~/rav1ator_cli_encoders || return; sha256sum SvtAv1EncApp | awk '{print $1}' | tr -dc "abcdefg1234567890")
+			aom_sum=$(cd ~/rav1ator_cli_encoders || return; sha256sum aomenc | awk '{print $1}' | tr -dc "abcdefg1234567890")
+			legal_sum=$(cd ~/rav1ator_cli_encoders || return; sha256sum legal.tar | awk '{print $1}' | tr -dc "abcdefg1234567890")
 			
 			# If the hash is wrong, exit the tool & inform the user
 			if [ "$rav1e_sum" != "51da17ab528c13ea3b97f765e85965f97048308ccd8012e55a61e2ada38527d6" ]; then
@@ -144,6 +146,10 @@ elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
 				exit 1
 			elif [ "$aom_sum" != "a8955f68ef94f05d263aa1be781225d61b68784a6de35a324bd7437d7aa84160" ]; then
 				echo -e "${GREY}Bad binary integrity detected:${RESET} aomenc"
+				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
+				exit 1
+			elif [ "$legal_sum" != "2bcbb1e170dccf0236292d8fd132d3880e70c90756984b7d1024220d125bd42c" ]; then
+				echo -e "${GREY}Bad file integrity detected:${RESET} legal.tar"
 				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
 				exit 1
 			fi
