@@ -19,18 +19,18 @@ INTRO_HELP1="Binaries will be found in a folder called \"rav1ator_cli_encoders\"
 INTRO_HELP2="sudo cp ~/rav1ator_cli_encoders/* /usr/local/bin"
 INTRO_HELP3="If you're using ZSH, specifically with Oh My ZSH, you may only need to uncomment the second line by removing the \"#\" in front of it in your .zshrc file. You can edit this file by running \"nano ~/.zshrc\""
 
-# Binary links for the pre-built binaries. Using Revolt's CDN
-rav1e_link="https://autumn.revolt.chat/attachments/download/7S3LEh4pvZtWiyNmiz9zNkGWd4f_eulMOd6kYDwz4q"
-x265_link="https://autumn.revolt.chat/attachments/download/lgk01Z-Ax5tmBZ2WUNXkbYEN4deAel3aKxNWzD_E2O"
-x264_link="https://autumn.revolt.chat/attachments/download/WWeUuEWViblcvNAQRCmrV23ccCe2MJSoZtOmGdy5hQ"
-svt_link="https://autumn.revolt.chat/attachments/download/sD7oP_rp4FK3COsWgMVeKJnOkB-KrLiZSFQq8bPPVO"
-aom_link="https://autumn.revolt.chat/attachments/download/UEu7LnYIDgwiTkt-8uv2AzP_ei2NEu15JxuytCxSZk"
+# Binary links for the pre-built binaries. From GitHub
+rav1e_link=""
+x265_link=""
+x264_link=""
+svt_link=""
+aom_link=""
 
 
 # Every time there's a significant user-facing update, this will change & is checked against rav1ator-cli.md5 (which is pulled from the git repo). to generate rav1ator-cli.md5, just `rm rav1ator-cli.md5 && md5sum rav1ator-cli | awk '{print $1}' >> rav1ator-cli.md5`.
 script_md5=$(md5sum /usr/local/bin/rav1ator-cli | awk '{print $1}')
-version="0.2.1"
-bin_latest_date="23 Jan 2024"
+version="0.2.2"
+bin_latest_date="04 Feb 2024"
 
 # Check where the script is located
 bin_loc=$(which rav1ator-cli)
@@ -88,7 +88,21 @@ elif [[ "$*" == "-f" || "$*" == "--full-history" ]]; then
 
 # If the user passes a binary installation flag, prompt to install binaries
 elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
-	echo -e "Binaries last updated by rav1ator-cli on ${BOLD}$bin_latest_date${RESET}"
+	# Check for updates when -b flag is passed
+	updateCheck=$(update_hash_check)
+	if [[ "$script_md5" == "DEBUG" ]]; then
+		echo -e " ${GREY}Running in offline mode, skipping update checks.${RESET}\n"
+		echo -e "Binaries last updated by rav1ator-cli on ${BOLD}$bin_latest_date${RESET}"
+	elif [[ "$script_md5" != "$updateCheck" ]]; then
+		# Download latest script from GitHub if we need to update
+		curl -sOJ https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli
+		echo -e "\nThere is a ${BOLD}New Update${RESET} available!"
+		echo -e "${GREY}We've downloaded it for you. You can install it by running the following command in your current directory:${RESET}"
+		echo -e "sudo cp rav1ator-cli /usr/local/bin" # Installation instruction
+		exit 1
+	else
+		echo -e "Binaries last updated by rav1ator-cli on ${BOLD}$bin_latest_date${RESET}"
+	fi
 	manualInstall=$(encoders_download)
 	case $manualInstall in
 		"Yes")
@@ -124,7 +138,7 @@ elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
 				echo -e "${GREY}Bad binary integrity detected:${RESET} x264"
 				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
 				exit 1
-			elif [ "$svt_sum" != "41df0f30d41b7e8341c52af32e062a3da55437d882abe810955a3b66feae3360" ]; then
+			elif [ "$svt_sum" != "1d9c5db7676e39ec9d8986f4e10d927341a2ba4917cfd6048048637b018e3d61" ]; then
 				echo -e "${GREY}Bad binary integrity detected:${RESET} SvtAv1EncApp"
 				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
 				exit 1
