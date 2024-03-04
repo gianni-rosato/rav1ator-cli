@@ -30,8 +30,8 @@ legal_link="https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/bi
 
 # Every time there's a significant user-facing update, this will change & is checked against rav1ator-cli.md5 (which is pulled from the git repo). to generate rav1ator-cli.md5, just `rm rav1ator-cli.md5 && md5sum rav1ator-cli | awk '{print $1}' >> rav1ator-cli.md5`.
 script_md5=$(md5sum /usr/local/bin/rav1ator-cli | awk '{print $1}')
-version="0.2.2"
-bin_latest_date="04 Feb 2024"
+version="0.2.4"
+bin_latest_date="04 Mar 2024"
 
 # Check where the script is located
 bin_loc=$(which rav1ator-cli)
@@ -97,9 +97,11 @@ elif [[ "$*" == "-f" || "$*" == "--full-history" ]]; then
 elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
 	# Check for updates when -b flag is passed
 	updateCheck=$(update_hash_check)
-	if [[ "$script_md5" == "DEBUG" ]]; then
-		echo -e " ${GREY}Running in offline mode, skipping update checks.${RESET}\n"
-		echo -e "Binaries last updated by rav1ator-cli on ${BOLD}$bin_latest_date${RESET}"
+	if [[ "$updateCheck" == "" ]]; then
+	    # If we can't fetch the script's hash from GitHub, inform the user and abort
+	    echo -e "${BOLD}${GREY}Error${RESET}${GREY}: Could not fetch script hash.${RESET}"
+		echo -e "${GREY}An internet connection is required for binary installation.${RESET}"
+    exit 1
 	elif [[ "$script_md5" != "$updateCheck" ]]; then
 		# Download latest script from GitHub if we need to update
 		curl -sOJ https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli
@@ -147,7 +149,7 @@ elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
 				echo -e "${GREY}Bad binary integrity detected:${RESET} x264"
 				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
 				exit 1
-			elif [ "$svt_sum" != "1d9c5db7676e39ec9d8986f4e10d927341a2ba4917cfd6048048637b018e3d61" ]; then
+			elif [ "$svt_sum" != "f9cd82807b6097a6cc0c4d5c393cc6835e6d850e0375f1d5fb2f3e57b344c066" ]; then
 				echo -e "${GREY}Bad binary integrity detected:${RESET} SvtAv1EncApp"
 				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
 				exit 1
@@ -515,7 +517,7 @@ audio_text () {
 
 # Dropdown for selecting an FFmpeg preset
 audio_opts () {
-	yn=$(gum choose --limit=1 --cursor.foreground="161" --item.foreground="248" None Strip "128K Opus Stereo" "256K AAC Stereo" "320K Vorbis Stereo" "224k Opus (5.1)" "336k Opus (7.1)" Custom)
+	yn=$(gum choose --limit=1 --cursor.foreground="161" --item.foreground="248" None Strip "128K Opus Stereo" "256K AAC Stereo" "320K Vorbis Stereo" "224k Opus (5.1)" "224k Opus (5.1 Remap)" "336k Opus (7.1)" Custom)
 	# "-c:a libopus -b:a 128k"
 
 	case $yn in
@@ -539,6 +541,9 @@ audio_opts () {
 			;;
 		"224k Opus (5.1)")
 			str="-c:a libopus -mapping_family 1 -b:a 224k"
+			;;
+		"224k Opus (5.1 Remap)")
+			str="-c:a libopus -filter:a channelmap=\"FL-FL|FR-FR|FC-FC|LFE-LFE|SL-BL|SR-BR:5.1\" -mapping_family 1 -b:a 224k"
 			;;
 		"336k Opus (7.1)")
 			str="-c:a libopus -mapping_family 1 -b:a 336k"
@@ -604,6 +609,11 @@ while [[ $done -eq 0 ]] ; do
 	updateCheck=$(update_hash_check)
 	if [[ "$script_md5" == "DEBUG" ]]; then
 		echo -e " ${GREY}Running in offline mode, skipping update checks.${RESET}\n"
+	elif [[ "$updateCheck" == "" ]]; then
+	    # If we can't fetch the script's hash from GitHub, inform the user and abort
+	    echo -e "\n${BOLD}${GREY}Error${RESET}${GREY}: Could not fetch script hash.${RESET}"
+		echo -e "${GREY}Please check your internet connection or run rAV1ator CLI in offline mode.${RESET}"
+        exit 1
 	elif [[ "$script_md5" != "$updateCheck" ]]; then
 		# Download latest script from GitHub if we need to update
 		curl -sOJ https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli
@@ -732,8 +742,6 @@ while [[ $done -eq 0 ]] ; do
 				# Execute generated Av1an script to begin encoding
     			./"rAV1ator-CLI_job${RAND}.sh"
 
-				# Once it is done or the user cancels, it will show this message & remove the generated script
-    			echo -e "${BOLD}Encoding Finished!${RESET} Thanks for checking out ${BOLD}rAV1ator${RESET}${GREY}:${RESET} ${AV1RED}${BOLD}CLI${RESET} ${BOLD}Edition${RESET}${GREY}${BLINK}${BOLD}!${RESET}"
     			rm "rAV1ator-CLI_job${RAND}.sh"
 				;;
 			"Start Batch")

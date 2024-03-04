@@ -1,14 +1,16 @@
 # rAV1ator CLI
 An easy-to-use CLI utility for working with Av1an, written in Bash.
 
+rAV1ator CLI is a command-line utility for encoding videos using the Av1an encoding toolkit. It provides an easy-to-use interface for configuring various encoding settings, selecting encoders, and managing the encoding process. The utility is written in Bash and leverages the power of Av1an for efficient AV1 encoding.
+
 ```zsh
 ~ > rav1ator-cli -h
-rAV1ator: CLI Edition_ v0.2.2
+rAV1ator: CLI Edition_ v0.2.4
 
 Usage:
 	rav1ator-cli [input] [output] [--offline]
 
-Dependencies (Arch): 
+Dependencies (Arch):
 	zstd tar ffmpeg python mkvtoolnix-cli vapoursynth gum numactl l-smash vapoursynth-plugin-lsmashsource av1an ffms2
 
 Options: (Currently, only one option is useful at a time)
@@ -20,34 +22,28 @@ Options: (Currently, only one option is useful at a time)
 	-a, --batch			Batch encode. All video files in a directory specified after this flag are encoded.
 ```
 
-rAV1ator CLI can:
+## Features
 
-- Check if it is installed & up to date on its own without a package manager
-
-- Download AVX2-optimized encoder binaries compiled with `-O3 -flto` in most cases & allow the user to install them with detailed instructions
-
-- Remember encoding history and let you view your whole history or your most recent command
-
-- Allow you to encode an entire directory of video files with the same settings
-
-- Encode with x264, x265, aomenc, SVT-AV1-PSY, or rav1e, set a speed preset, CRF/quality value, FFmpeg parameters, and encoder parameters
-
-- Generate Av1an encoding commands with the user's chosen settings & run them to encode a provided input video to an MKV output.
-
-- Encode from scratch, or resume a previous rAV1ator CLI encode
-
-- Engage with rich interactivity features like spinners, prompts, & dropdowns
-
-- Automatically error check binaries with SHA256 hashes for security & convenience
+- **Encoder Selection**: Choose from a variety of encoders including x264, x265, aomenc, SVT-AV1, and rav1e.
+- **Interactive Configuration**: Set encoding parameters such as speed presets, CRF/quality values, FFmpeg parameters, and encoder-specific options through an interactive command-line interface.
+- **Batch Encoding**: Encode an entire directory of video files with the same settings.
+- **Encoding History**: View your encoding history, including the last used settings and the complete history.
+- **Resume Encoding**: Resume a previous encoding session, allowing you to continue from where you left off.
+- **Binary Management**: Download and install optimized encoder binaries compiled with performance-oriented flags for optimal encoding speed.
+- **Update Checking**: Automatically check for updates on every run.
+- **Rich Interactivity**: Enjoy a visually appealing experience with spinners, prompts, and dropdown menus.
 
 Overall, it aims to provide an easy way to encode videos on the command line with helpful visual feedback. The interactive prompts help users pick encoding settings without needing deep encoding knowledge.
 
-## Installation
+## Dependencies & Installation
 
-Installing rAV1ator CLI on its own is as simple as running the following two commands:
+*Note: Full installation instructions are provided on the Codec Wiki on [this page](https://wiki.x266.mov/docs/utilities/rav1ator-cli). These instructions here assume you are on Arch Linux; if you are using anything else, refer to the wiki.*
+
+Installing rAV1ator CLI on its own is as simple as running the following commands:
 
 ```bash
-curl -sOJ https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli && chmod +x rav1ator-cli
+curl -sOJ https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli
+chmod +x rav1ator-cli
 sudo cp rav1ator-cli /usr/local/bin
 ```
 
@@ -69,10 +65,18 @@ I strive to provide safe pre-compiled binary installation for everyone. That bei
 
 Redistribution of the binaries I have compiled here is fair and just under as it pertains to the terms of the licenses attached to each binary. These can be found in the `legal/` directory that is automatically downloaded alongside the binaries via rAV1ator CLI's binary installation, or within the `bin/` directory of this repo.
 
-### Demos
+## Demos
 
 ![rav1ator_cli-demo1](./static/rav1ator_cli_demo1.avif)
 
 ![rav1ator_cli-demo2](./static/rav1ator_cli_demo2.avif)
 
 If you want to learn more about AV1 encoding, check out [AV1 Encoding for Dummies](https://wiki.x266.mov/blog/av1-encoding-for-dummies) on the Codec Wiki.
+
+## Contributing
+
+Contributions to rAV1ator CLI are welcome! If you encounter any issues or have suggestions for improvements, please open an issue or submit a pull request on the GitHub repository.
+
+## License
+
+rAV1ator CLI is released under the BSD 3-Clause License. See the [LICENSE](LICENSE) file for more information.
