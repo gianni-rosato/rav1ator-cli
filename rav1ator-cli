@@ -30,7 +30,7 @@ legal_link="https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/bi
 
 # Every time there's a significant user-facing update, this will change & is checked against rav1ator-cli.md5 (which is pulled from the git repo). to generate rav1ator-cli.md5, just `rm rav1ator-cli.md5 && md5sum rav1ator-cli | awk '{print $1}' >> rav1ator-cli.md5`.
 script_md5=$(md5sum /usr/local/bin/rav1ator-cli | awk '{print $1}')
-version="0.2.4"
+version="0.2.4a"
 bin_latest_date="04 Mar 2024"
 
 # Check where the script is located
@@ -543,7 +543,7 @@ audio_opts () {
 			str="-c:a libopus -mapping_family 1 -b:a 224k"
 			;;
 		"224k Opus (5.1 Remap)")
-			str="-c:a libopus -filter:a channelmap=\"FL-FL|FR-FR|FC-FC|LFE-LFE|SL-BL|SR-BR:5.1\" -mapping_family 1 -b:a 224k"
+			str="-c:a libopus -filter:a channelmap=\\\"FL-FL|FR-FR|FC-FC|LFE-LFE|SL-BL|SR-BR:5.1\\\" -mapping_family 1 -b:a 224k"
 			;;
 		"336k Opus (7.1)")
 			str="-c:a libopus -mapping_family 1 -b:a 336k"
