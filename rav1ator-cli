@@ -30,14 +30,11 @@ legal_link="https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/bi
 
 # Every time there's a significant user-facing update, this will change & is checked against rav1ator-cli.md5 (which is pulled from the git repo). to generate rav1ator-cli.md5, just `rm rav1ator-cli.md5 && md5sum rav1ator-cli | awk '{print $1}' >> rav1ator-cli.md5`.
 script_md5=$(md5sum /usr/local/bin/rav1ator-cli | awk '{print $1}')
-version="0.2.5"
-bin_latest_date="04 Mar 2024"
+version="0.2.6"
+bin_latest_date="25 Mar 2024"
 
 # Check where the script is located
 bin_loc=$(which rav1ator-cli)
-
-# Catmull-Rom FFmpeg string
-catrom="bicubic:param0=0:param1=1/2"
 
 # Is this a batch encode
 is_batch_encode=0
@@ -46,6 +43,11 @@ is_batch_encode=0
 update_hash_check () {
 	str=$(curl -s https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli.md5)
 	echo "$str"
+}
+
+update_prompt() {
+    str=$(gum confirm "Install update now?" --selected.background="161" --selected.foreground="15" --unselected.foreground="248" && echo "Yes" || echo "No")
+    echo "$str"
 }
 
 # Binary installation prompt if the user passes -b
@@ -103,18 +105,33 @@ elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
 		echo -e "${GREY}An internet connection is required for binary installation.${RESET}"
     exit 1
 	elif [[ "$script_md5" != "$updateCheck" ]]; then
-		# Download latest script from GitHub if we need to update
-		curl -sOJ https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli
-		echo -e "\nThere is a ${BOLD}New Update${RESET} available!"
-		echo -e "${GREY}We've downloaded it for you. You can install it by running the following command in your current directory:${RESET}"
-		echo -e "sudo cp rav1ator-cli /usr/local/bin" # Installation instruction
-		exit 1
+	    echo -n -e "${BOLD}rAV1ator${RESET}${GREY}:${RESET} ${AV1RED}${BOLD}CLI${RESET} ${BOLD}Edition${RESET}${GREY}${BLINK}${BOLD}_${RESET}"
+        echo -e "\nThere is a ${BOLD}New Update${RESET} available!"
+        echo -e "${GREY}We've downloaded it for you. Would you like to install to /usr/local/bin?${RESET}"
+        # Download latest script from GitHub if we need to update
+    	curl -sOJ https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli
+    	chmod +x rav1ator-cli
+    	# echo -e "sudo cp rav1ator-cli /usr/local/bin" # Installation instruction
+    	confirmation=$(update_prompt)
+    	if [[ "$confirmation" == "Yes" ]]; then
+            echo -e "${GREY}>${RESET} ${AV1RED}Yes${RESET}"
+            sudo cp rav1ator-cli /usr/local/bin
+            echo -e "If you accepted the sudo prompt, ${GREY}v$version${RESET} should be installed!"
+            exit 1
+        else
+            echo -e "${GREY}>${RESET} ${AV1RED}No${RESET}"
+            echo -e "${GREY}The latest version of rAV1ator CLI has been downloaded to the current directory.${RESET}"
+            echo -e "${GREY}You can install it manually by running:${RESET} sudo cp rav1ator-cli /usr/local/bin"
+            exit 1
+        fi
+exit 1
 	else
 		echo -e "Binaries last updated by rav1ator-cli on ${BOLD}$bin_latest_date${RESET}"
 	fi
 	manualInstall=$(encoders_download)
 	case $manualInstall in
 		"Yes")
+		    echo -e "${GREY}>${RESET} ${AV1RED}Yes${RESET}"
 			# Clean up old binary directory & make a new one
 			rm -rf ~/rav1ator_cli_encoders
 			mkdir ~/rav1ator_cli_encoders
@@ -149,7 +166,7 @@ elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
 				echo -e "${GREY}Bad binary integrity detected:${RESET} x264"
 				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
 				exit 1
-			elif [ "$svt_sum" != "f9cd82807b6097a6cc0c4d5c393cc6835e6d850e0375f1d5fb2f3e57b344c066" ]; then
+			elif [ "$svt_sum" != "05c244c28e0f7de18c7f04ab15f6f602480d941dec41955dd28eb68c7f8479ee" ]; then
 				echo -e "${GREY}Bad binary integrity detected:${RESET} SvtAv1EncApp"
 				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
 				exit 1
@@ -196,7 +213,7 @@ elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
 			esac
 			;;
 		"No")
-
+		    echo -e "${GREY}>${RESET} ${AV1RED}No${RESET}"
 			# Notify that installation was aborted
 			echo -e "${GREY}Binary installation aborted.${RESET}"
 			exit 1
@@ -615,11 +632,24 @@ while [[ $done -eq 0 ]] ; do
 		echo -e "${GREY}Please check your internet connection or run rAV1ator CLI in offline mode.${RESET}"
         exit 1
 	elif [[ "$script_md5" != "$updateCheck" ]]; then
-		# Download latest script from GitHub if we need to update
-		curl -sOJ https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli
-		echo -e "\nThere is a ${BOLD}New Update${RESET} available!"
-		echo -e "${GREY}We've downloaded it for you. You can install it by running the following command in your current directory:${RESET}"
-		echo -e "sudo cp rav1ator-cli /usr/local/bin" # Installation instruction
+        echo -e "\nThere is a ${BOLD}New Update${RESET} available!"
+        echo -e "${GREY}We've downloaded it for you. Would you like to install to /usr/local/bin?${RESET}"
+        # Download latest script from GitHub if we need to update
+    	curl -sOJ https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli
+    	chmod +x rav1ator-cli
+    	# echo -e "sudo cp rav1ator-cli /usr/local/bin" # Installation instruction
+    	confirmation=$(update_prompt)
+    	if [[ "$confirmation" == "Yes" ]]; then
+            echo -e "${GREY}>${RESET} ${AV1RED}Yes${RESET}"
+            sudo cp rav1ator-cli /usr/local/bin
+            echo -e "If you accepted the sudo prompt, ${GREY}v$version${RESET} should be installed!"
+            exit 1
+        else
+            echo -e "${GREY}>${RESET} ${AV1RED}No${RESET}"
+            echo -e "${GREY}The latest version of rAV1ator CLI has been downloaded to the current directory.${RESET}"
+            echo -e "${GREY}You can install it manually by running:${RESET} sudo cp rav1ator-cli /usr/local/bin"
+            exit 1
+        fi
 		exit 1
 	else
 		echo -e "\n"
