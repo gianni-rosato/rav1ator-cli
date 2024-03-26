@@ -116,6 +116,7 @@ elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
     	if [[ "$confirmation" == "Yes" ]]; then
             echo -e "${GREY}>${RESET} ${AV1RED}Yes${RESET}"
             sudo cp rav1ator-cli /usr/local/bin
+            rm -f rav1ator-cli
             echo -e "If you accepted the sudo prompt, ${GREY}v$version${RESET} should be installed!"
             exit 1
         else
@@ -637,11 +638,11 @@ while [[ $done -eq 0 ]] ; do
         # Download latest script from GitHub if we need to update
     	curl -sOJ https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli
     	chmod +x rav1ator-cli
-    	# echo -e "sudo cp rav1ator-cli /usr/local/bin" # Installation instruction
     	confirmation=$(update_prompt)
     	if [[ "$confirmation" == "Yes" ]]; then
             echo -e "${GREY}>${RESET} ${AV1RED}Yes${RESET}"
             sudo cp rav1ator-cli /usr/local/bin
+            rm -f rav1ator-cli
             echo -e "If you accepted the sudo prompt, ${GREY}v$version${RESET} should be installed!"
             exit 1
         else
