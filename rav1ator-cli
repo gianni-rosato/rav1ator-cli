@@ -117,7 +117,7 @@ elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
             echo -e "${GREY}>${RESET} ${AV1RED}Yes${RESET}"
             sudo cp rav1ator-cli /usr/local/bin
             rm -f rav1ator-cli
-            echo -e "If you accepted the sudo prompt, ${GREY}v$version${RESET} should be installed!"
+            echo -e "If you accepted the sudo prompt, the latest version should now be installed!"
             exit 1
         else
             echo -e "${GREY}>${RESET} ${AV1RED}No${RESET}"
