@@ -30,8 +30,8 @@ legal_link="https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/bi
 
 # Every time there's a significant user-facing update, this will change & is checked against rav1ator-cli.md5 (which is pulled from the git repo). to generate rav1ator-cli.md5, just `rm rav1ator-cli.md5 && md5sum rav1ator-cli | awk '{print $1}' >> rav1ator-cli.md5`.
 script_md5=$(md5sum /usr/local/bin/rav1ator-cli | awk '{print $1}')
-version="0.2.7"
-bin_latest_date="09 May 2024"
+version="0.2.8"
+bin_latest_date="22 May 2024"
 
 # Check where the script is located
 bin_loc=$(which rav1ator-cli)
@@ -84,8 +84,8 @@ if [[ "$*" == "-h" || "$*" == "--help" ]]; then
 
 # If the user passes a last used flag, print last used in history
 elif [[ "$*" == "-l" || "$*" == "--last-used" ]]; then
-	lastused1=$(cat ~/.rav1ator-cli-history | tail -n 2 | head -n 1)
-	lastused2=$(cat ~/.rav1ator-cli-history | tail -n 2 | tail -n 1)
+	lastused1=$(tail -n 2 ~/.rav1ator-cli-history | head -n 1)
+	lastused2=$(tail -n 2 ~/.rav1ator-cli-history | tail -n 1)
 	echo -e "${GREY}$lastused1${RESET}"
 	echo -e "$lastused2"
 	exit 1
@@ -167,7 +167,7 @@ exit 1
 				echo -e "${GREY}Bad binary integrity detected:${RESET} x264"
 				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
 				exit 1
-			elif [ "$svt_sum" != "6c1525c0950b288026cbd16e6075a94385bebbc0489ba9a82fd0eef1145776d8" ]; then
+			elif [ "$svt_sum" != "6d4e62a4f9fdf2a41f00301303abc56c560b3e593b39da1c4617486fe19e7b71" ]; then
 				echo -e "${GREY}Bad binary integrity detected:${RESET} SvtAv1EncApp"
 				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
 				exit 1
@@ -456,21 +456,9 @@ ffmpeg_gen_hei () {
 	echo "$str"
 }
 
-ffmpeg_gen_crow () {
-	str=$(gum input --cursor.foreground="161" --prompt.foreground="248" --width 4 --placeholder "Crop from Sides")
-	echo "$str"
-}
-
-ffmpeg_gen_croh () {
-	str=$(gum input --cursor.foreground="161" --prompt.foreground="248" --width 4 --placeholder "Crop from Top & Bottom")
-	echo "$str"
-}
-
 # Dropdown for selecting an FFmpeg preset
 ffmpeg_select () {
-	yn=$(gum choose --limit=1 --cursor.foreground="161" --item.foreground="248" None "Generate Crop..." "Generate Scale..." 1080p 720p "1080p BluRay" "1080p Univisium" 4k Custom)
-	# -a="-c:a libopus -b:a 128k"
-
+	yn=$(gum choose --limit=1 --cursor.foreground="161" --item.foreground="248" None "Generate Crop..." "Generate Scale..." 1080p 720p "1080p BluRay" 4k Custom)
 	case $yn in
 		"Custom")
 			str="$(gum input --cursor.foreground="161" --prompt.foreground="248" --width 72 --placeholder "Custom FFmpeg Options")"
@@ -487,25 +475,22 @@ ffmpeg_select () {
 		"1080p BluRay")
 			str="-vf scale=1920:1080:flags=bicubic:param0=0:param1=1/2,crop=iw:ih-280"
 			;;
-		"1080p Univisium")
-			str="-vf scale=1920:960:flags=bicubic:param0=0:param1=1/2,crop=iw:ih-120"
-			;;
 		"4k")
 			str="-vf scale=3840:2160:flags=bicubic:param0=0:param1=1/2"
 			;;
 		"Generate Crop...")
-			crow=$(ffmpeg_gen_crow)
-			croh=$(ffmpeg_gen_croh)
+			crow=$(ffmpeg_gen_wid)
+			croh=$(ffmpeg_gen_hei)
 
 			# Format this string based on what the user puts as 0 (or not)
 			if [[ $crow == 0 && $croh == 0 ]]; then
 				str="-y"
 			elif [[ $crow == 0 ]]; then
-				str="-vf crop=iw:ih-$croh"
+				str="-vf crop=iw:$croh"
 			elif [[ $croh == 0 ]]; then
-				str="-vf crop=iw-$crow:ih"
+				str="-vf crop=$crow:ih"
 			else
-				str="-vf crop=iw-$crow:ih-$croh"
+				str="-vf crop=$crow:$croh"
 			fi
 			;;
 		"Generate Scale...")
@@ -651,7 +636,6 @@ while [[ $done -eq 0 ]] ; do
             echo -e "${GREY}You can install it manually by running:${RESET} sudo cp rav1ator-cli /usr/local/bin"
             exit 1
         fi
-		exit 1
 	else
 		echo -e "\n"
 	fi
@@ -761,7 +745,7 @@ while [[ $done -eq 0 ]] ; do
 
 				# Handle history output to `.rav1ator-cli-history` text file
 				echo "-------" >> ~/.rav1ator-cli-history
-				echo $(date) >> ~/.rav1ator-cli-history
+				date >> ~/.rav1ator-cli-history
 				echo -e "ulimit -n 200000 && av1an -i \"$INFILE\" --verbose --sc-pix-format=yuv420p --temp \"rAV1ator-CLI_temp${RAND}\" --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" -a \"$audioopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" >> ~/.rav1ator-cli-history
 
 				# Mark script as executable
@@ -792,7 +776,7 @@ while [[ $done -eq 0 ]] ; do
 
 				# Handle history output to `.rav1ator-cli-history` text file
 				echo "-------" >> ~/.rav1ator-cli-history
-				echo $(date) >> ~/.rav1ator-cli-history
+				date >> ~/.rav1ator-cli-history
 				echo -e "av1an -i \"genericInput.mkv\" --verbose --sc-pix-format=yuv420p --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" -a \"$audioopts\" --set-thread-affinity 2 -w $workers -o genericOutput.mkv" >> ~/.rav1ator-cli-history
 
 				# Mark script as executable
@@ -824,7 +808,7 @@ while [[ $done -eq 0 ]] ; do
 
 				# Handle history output to `.rav1ator-cli-history` text file
 				echo "-------" >> ~/.rav1ator-cli-history
-				echo $(date) >> ~/.rav1ator-cli-history
+				date >> ~/.rav1ator-cli-history
 				echo -e "ulimit -n 200000 && av1an -i \"$INFILE\" --verbose --sc-pix-format=yuv420p --resume --temp \"rAV1ator-CLI_temp${RAND}\" --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" -a \"$audioopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" >> ~/.rav1ator-cli-history
 
 				# Mark script as executable
@@ -848,7 +832,7 @@ while [[ $done -eq 0 ]] ; do
 
 				# Handle history output to `.rav1ator-cli-history` text file
 				echo "-------" >> ~/.rav1ator-cli-history
-				echo $(date) >> ~/.rav1ator-cli-history
+				date >> ~/.rav1ator-cli-history
 				echo -e "av1an -i \"$INFILE\" --verbose --sc-pix-format=yuv420p --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" -a \"$audioopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" >> ~/.rav1ator-cli-history
 
 				# Inform the user that the printed output is also in their history
@@ -863,7 +847,7 @@ while [[ $done -eq 0 ]] ; do
 
 				# Handle history output to `.rav1ator-cli-history` text file
 				echo "-------" >> ~/.rav1ator-cli-history
-				echo $(date) >> ~/.rav1ator-cli-history
+				date >> ~/.rav1ator-cli-history
 				echo -e "av1an -i \"genericInput.mkv\" --verbose --sc-pix-format=yuv420p --split-method av-scenechange -m lsmash -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" -a \"$audioopts\" --set-thread-affinity 2 -w $workers -o \"genericOutput.mkv\"" >> ~/.rav1ator-cli-history
 
 				# Inform the user that the printed output is also in their history
