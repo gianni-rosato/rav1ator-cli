@@ -30,8 +30,8 @@ legal_link="https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/bi
 
 # Every time there's a significant user-facing update, this will change & is checked against rav1ator-cli.md5 (which is pulled from the git repo). to generate rav1ator-cli.md5, just `rm rav1ator-cli.md5 && md5sum rav1ator-cli | awk '{print $1}' >> rav1ator-cli.md5`.
 script_md5=$(md5sum /usr/local/bin/rav1ator-cli | awk '{print $1}')
-version="0.2.9"
-bin_latest_date="24 June 2024"
+version="0.3.0"
+bin_latest_date="21 August 2024"
 
 # Check where the script is located
 bin_loc=$(which rav1ator-cli)
@@ -167,7 +167,7 @@ exit 1
 				echo -e "${GREY}Bad binary integrity detected:${RESET} x264"
 				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
 				exit 1
-			elif [ "$svt_sum" != "d1215ebf5fcaa7fb7a69949d9ad39e7398ed320886f4c2747bde64f6a1d58af0" ]; then
+			elif [ "$svt_sum" != "52e7546cb000cdb93897d3aa7ed89381e7eac83bce8ca3684f43fb24db153064" ]; then
 				echo -e "${GREY}Bad binary integrity detected:${RESET} SvtAv1EncApp"
 				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
 				exit 1
@@ -567,6 +567,36 @@ worker_select () {
 	echo "$str"
 }
 
+chunkmethod_text () {
+    str="The chunk method defines how Av1an splits up your video into smaller chunks for encoding. \nLsmash is the fastest, but can be less reliable. Bestsource is slower but more reliable. \nIf you're unsure, Bestsource is recommended."
+    echo "$str"
+}
+
+# Chunk Method Selection
+chunkmethod_select () {
+	# Single threaded
+	str=$(gum choose --limit=1 --cursor.foreground="161" --item.foreground="248" Lsmash Bestsource)
+	echo "$str"
+}
+
+# Chunk Method Option Return
+chunkmethod_opt () {
+    local method
+    local selected_method
+    method=$(chunkmethod_select)
+
+    case $method in
+        "Lsmash")
+            selected_method="lsmash"
+            ;;
+        "Bestsource")
+            selected_method="bestsource"
+            ;;
+    esac
+
+    echo "$selected_method"
+}
+
 # Final prompt, asking user whether or not the want to start the encode, abort, start the encode with the resume option, or print the resulting script derived from their input
 encode_start_select () {
 	str="Missing"
@@ -726,6 +756,12 @@ while [[ $done -eq 0 ]] ; do
     	workers=$(worker_select)
     	echo -e "${GREY}>${RESET} ${AV1RED}$workers${RESET}\n"
 
+        # Asking for Av1an chunk method
+        chunk_text=$(chunkmethod_text)
+        echo -e "$chunk_text"
+        chunk_string=$(chunkmethod_opt)
+        echo -e "${GREY}>${RESET} ${AV1RED}$chunk_string${RESET}\n"
+
 		# Finally, asking if the user is ready to encoder
     	echo -e "${BOLD}Ready to encode?${RESET}"
     	encode_start=$(encode_start_select)
@@ -746,7 +782,7 @@ while [[ $done -eq 0 ]] ; do
 				# Handle history output to `.rav1ator-cli-history` text file
 				echo "-------" >> ~/.rav1ator-cli-history
 				date >> ~/.rav1ator-cli-history
-				echo -e "ulimit -n 200000 && av1an -i \"$INFILE\" --verbose --sc-pix-format=yuv420p --temp \"rAV1ator-CLI_temp${RAND}\" --split-method av-scenechange -m bestsource -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" -a \"$audioopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" >> ~/.rav1ator-cli-history
+				echo -e "ulimit -n 200000 && av1an -i \"$INFILE\" --verbose --sc-pix-format=yuv420p --temp \"rAV1ator-CLI_temp${RAND}\" --split-method av-scenechange -m $chunk_string -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" -a \"$audioopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" >> ~/.rav1ator-cli-history
 
 				# Mark script as executable
 				chmod +x "rAV1ator-CLI_job${RAND}.sh"
