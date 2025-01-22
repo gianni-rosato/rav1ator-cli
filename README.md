@@ -42,7 +42,7 @@ Overall, it aims to provide an easy way to encode videos on the command line wit
 Installing rAV1ator CLI on its own is as simple as running the following commands:
 
 ```bash
-curl -sOJ https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli
+curl -sOJ https://raw.githubusercontent.com/ultimaxx/rav1ator-cli/main/rav1ator-cli
 chmod +x rav1ator-cli
 sudo cp rav1ator-cli /usr/local/bin
 ```
