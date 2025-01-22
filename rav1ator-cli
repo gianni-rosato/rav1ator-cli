@@ -20,18 +20,18 @@ INTRO_HELP2="sudo cp ~/rav1ator_cli_encoders/* /usr/local/bin"
 INTRO_HELP3="If you're using ZSH, specifically with Oh My ZSH, you may only need to uncomment the second line by removing the \"#\" in front of it in your .zshrc file. You can edit this file by running \"nano ~/.zshrc\""
 
 # Binary links for the pre-built binaries. From GitHub
-rav1e_link="https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/bin/rav1e.zst"
-x265_link="https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/bin/x265.zst"
-x264_link="https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/bin/x264.zst"
-svt_link="https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/bin/SvtAv1EncApp.zst"
-aom_link="https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/bin/aomenc.zst"
-legal_link="https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/bin/legal.tar.zst"
+rav1e_link="https://raw.githubusercontent.com/ultimaxx/rav1ator-cli/main/bin/rav1e.zst"
+x265_link="https://raw.githubusercontent.com/ultimaxx/rav1ator-cli/main/bin/x265.zst"
+x264_link="https://raw.githubusercontent.com/ultimaxx/rav1ator-cli/main/bin/x264.zst"
+svt_link="https://raw.githubusercontent.com/ultimaxx/rav1ator-cli/main/bin/SvtAv1EncApp.zst"
+aom_link="https://raw.githubusercontent.com/ultimaxx/rav1ator-cli/main/bin/aomenc.zst"
+legal_link="https://raw.githubusercontent.com/ultimaxx/rav1ator-cli/main/bin/legal.tar.zst"
 
 
 # Every time there's a significant user-facing update, this will change & is checked against rav1ator-cli.md5 (which is pulled from the git repo). to generate rav1ator-cli.md5, just `rm rav1ator-cli.md5 && md5sum rav1ator-cli | awk '{print $1}' >> rav1ator-cli.md5`.
 script_md5=$(md5sum /usr/local/bin/rav1ator-cli | awk '{print $1}')
-version="0.3.0"
-bin_latest_date="21 August 2024"
+version="0.3.1"
+bin_latest_date="21 Janurary 2025"
 
 # Check where the script is located
 bin_loc=$(which rav1ator-cli)
@@ -41,7 +41,7 @@ is_batch_encode=0
 
 # Check for updates by checking the script's hash against the latest hash in the git repo. Requires an internet connection.
 update_hash_check () {
-	str=$(curl -s https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli.md5)
+	str=$(curl -s https://raw.githubusercontent.com/ultimaxx/rav1ator-cli/main/rav1ator-cli.md5)
 	echo "$str"
 }
 
@@ -109,7 +109,7 @@ elif [[ "$*" == "-b" || "$*" == "--binaries" ]]; then
         echo -e "\nThere is a ${BOLD}New Update${RESET} available!"
         echo -e "${GREY}We've downloaded it for you. Would you like to install to /usr/local/bin?${RESET}"
         # Download latest script from GitHub if we need to update
-    	curl -sOJ https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli
+    	curl -sOJ https://raw.githubusercontent.com/ultimaxx/rav1ator-cli/main/rav1ator-cli
     	chmod +x rav1ator-cli
     	# echo -e "sudo cp rav1ator-cli /usr/local/bin" # Installation instruction
     	confirmation=$(update_prompt)
@@ -157,27 +157,27 @@ exit 1
 			# If the hash is wrong, exit the tool & inform the user
 			if [ "$rav1e_sum" != "51da17ab528c13ea3b97f765e85965f97048308ccd8012e55a61e2ada38527d6" ]; then
 				echo -e "${GREY}Bad binary integrity detected:${RESET} rav1e"
-				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
+				echo -e "${GREY}Please contact ultimaxx on GitHub.${RESET}"
 				exit 1
 			elif [ "$x265_sum" != "e857e5c8b803de4849e0d75535ef5441008d6360327b7ff67d0e9295195a11e0" ]; then
 				echo -e "${GREY}Bad binary integrity detected:${RESET} x265"
-				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
+				echo -e "${GREY}Please contact ultimaxx on GitHub.${RESET}"
 				exit 1
 			elif [ "$x264_sum" != "47a872f6485b5b925627c038946646db7a5b105d71c5a34869009b3a38da38d1" ]; then
 				echo -e "${GREY}Bad binary integrity detected:${RESET} x264"
-				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
+				echo -e "${GREY}Please contact ultimaxx on GitHub.${RESET}"
 				exit 1
 			elif [ "$svt_sum" != "52e7546cb000cdb93897d3aa7ed89381e7eac83bce8ca3684f43fb24db153064" ]; then
 				echo -e "${GREY}Bad binary integrity detected:${RESET} SvtAv1EncApp"
-				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
+				echo -e "${GREY}Please contact ultimaxx on GitHub.${RESET}"
 				exit 1
 			elif [ "$aom_sum" != "a8955f68ef94f05d263aa1be781225d61b68784a6de35a324bd7437d7aa84160" ]; then
 				echo -e "${GREY}Bad binary integrity detected:${RESET} aomenc"
-				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
+				echo -e "${GREY}Please contact ultimaxx on GitHub.${RESET}"
 				exit 1
 			elif [ "$legal_sum" != "2bcbb1e170dccf0236292d8fd132d3880e70c90756984b7d1024220d125bd42c" ]; then
 				echo -e "${GREY}Bad file integrity detected:${RESET} legal.tar"
-				echo -e "${GREY}Please contact gianni-rosato on GitHub.${RESET}"
+				echo -e "${GREY}Please contact ultimaxx on GitHub.${RESET}"
 				exit 1
 			fi
 
@@ -651,7 +651,7 @@ while [[ $done -eq 0 ]] ; do
         echo -e "\nThere is a ${BOLD}New Update${RESET} available!"
         echo -e "${GREY}We've downloaded it for you. Would you like to install to /usr/local/bin?${RESET}"
         # Download latest script from GitHub if we need to update
-    	curl -sOJ https://raw.githubusercontent.com/gianni-rosato/rav1ator-cli/main/rav1ator-cli
+    	curl -sOJ https://raw.githubusercontent.com/ultimaxx/rav1ator-cli/main/rav1ator-cli
     	chmod +x rav1ator-cli
     	confirmation=$(update_prompt)
     	if [[ "$confirmation" == "Yes" ]]; then
