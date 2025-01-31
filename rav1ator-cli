@@ -776,7 +776,7 @@ while [[ $done -eq 0 ]] ; do
     			RAND=$(gum spin md5sum $INFILE --spinner.foreground="161" --spinner line --show-output --title "Hashing input file..." | head -c 6)
 
 				# Echo the generated script and goodbye message to a .sh file
-    			echo -e "ulimit -n 200000 && av1an -i \"$INFILE\" --verbose --sc-pix-format=yuv420p --temp \"rAV1ator-CLI_temp${RAND}\" --split-method av-scenechange -m bestsource -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" -a \"$audioopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" > "rAV1ator-CLI_job${RAND}.sh"
+    			echo -e "ulimit -n 200000 && av1an -i \"$INFILE\" --verbose --sc-pix-format=yuv420p --temp \"rAV1ator-CLI_temp${RAND}\" --split-method av-scenechange -m $chunk_string -c mkvmerge --sc-downscale-height $sc_downscale_res -e "$encoder_av1an" --force -v \"$params\" --pix-format yuv420p10le -f \"$ffmpegopts\" -a \"$audioopts\" --set-thread-affinity 2 -w $workers -o \"$OUTFILE\"" > "rAV1ator-CLI_job${RAND}.sh"
 				echo -e "echo -e \"${BOLD}Encoding Finished!${RESET} Thanks for checking out ${BOLD}rAV1ator${RESET}${GREY}:${RESET} ${AV1RED}${BOLD}CLI${RESET} ${BOLD}Edition${RESET}${GREY}${BLINK}${BOLD}!${RESET}\"" >> "rAV1ator-CLI_job${RAND}.sh"
 
 				# Handle history output to `.rav1ator-cli-history` text file
